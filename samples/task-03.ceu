@@ -1,0 +1,104 @@
+// Move image
+
+#include "c.ceu"
+#include "sdl/sdl.ceu"
+
+var SDL_Color bg = val SDL_Color(0x00,0x00,0x00,0xFF);
+var SDL_Rect rect = val SDL_Rect(100,100,20,50);
+var SDL_Rect img_r = val SDL_Rect(0,0, 32,32);
+var SDL_Rect anim_r = val SDL_Rect(0, 0, 0, 0);
+var int velX = 0;
+var int velY = 0;
+var int vel = 10;
+var int imgHeight=0;
+var int imgWidth=0;
+var int sprHeight = 32;
+var int sprWidth = 32;
+var int fps = 6;
+var int state = 0;
+event int changeAnim;
+
+var&? SDL_Init sdl = spawn SDL_Init("Task 02 - WASD-Move  UP/DOWN-Change Speed", 800,480, bg);
+watching sdl do
+	var& _SDL_Texture img_tex_wdown =
+        	&_IMG_LoadTexture(&&sdl.ren, "walk-down.png")
+		finalize (img_tex_wdown) with
+			_SDL_DestroyTexture(&&img_tex_wdown);
+		end;
+        var& _SDL_Texture img_tex_idown =
+                &_IMG_LoadTexture(&&sdl.ren, "idle-down.png")
+                finalize (img_tex_idown) with
+                        _SDL_DestroyTexture(&&img_tex_idown);
+                end;
+	var& _SDL_Texture img_tex = &img_tex_idown;
+
+	_SDL_QueryTexture(&&img_tex, null, null, &&imgWidth, &&imgHeight);
+	anim_r.w = sprHeight;
+	anim_r.h = sprWidth;
+	par do		
+		var _SDL_KeyboardEvent&& key;
+		every key in SDL_KEYDOWN do
+                	if key:keysym.sym == _SDLK_w  then
+                        	velY = -1;
+                	else/if key:keysym.sym == _SDLK_s then
+                        	velY = 1;				
+                	else/if key:keysym.sym == _SDLK_d then
+				velX = 1;
+                	else/if key:keysym.sym == _SDLK_a then
+                        	velX = -1;
+                	else/if key:keysym.sym == _SDLK_UP then
+                        	vel = vel-1;
+                	else/if key:keysym.sym == _SDLK_DOWN then
+                        	vel = vel+1;
+                	end
+			emit changeAnim(2);
+		end
+	with
+		var _SDL_KeyboardEvent&& key;
+		every key in SDL_KEYUP do
+			if key:keysym.sym == _SDLK_w and velY < 0 then
+                		velY = 0;
+        		else/if key:keysym.sym == _SDLK_s and velY > 0 then
+                		velY = 0;
+            		else/if key:keysym.sym == _SDLK_d and velX > 0 then
+                		velX = 0;
+            		else/if key:keysym.sym == _SDLK_a and velX < 0 then
+                		velX = 0;			
+			end
+			emit changeAnim(1);
+		end
+	with
+		loop do
+			var int newState = await changeAnim;
+			if state != newState then			
+				anim_r.y = 0;
+				state = newState;
+				if state == 1 then
+					img_tex = &img_tex_idown;
+				else/if state == 2 then
+					img_tex = &img_tex_wdown;
+				end
+				_SDL_QueryTexture(&&img_tex, null, null, &&imgWidth, &&imgHeight);
+			end
+		end
+	with
+		every (vel)ms do
+			img_r.x = img_r.x + velX;
+			img_r.y = img_r.y + velY;
+		end
+	with 
+		every (1000/fps)ms do
+			anim_r.y = anim_r.y + sprHeight;
+			if anim_r.y >= imgHeight then
+				anim_r.y = 0;
+			end
+		end
+	with
+                every SDL_REDRAW do
+                        _SDL_RenderCopy(&&sdl.ren, &&img_tex, &&anim_r as _SDL_Rect&&, &&img_r as _SDL_Rect&&);
+                end		
+	end
+end
+
+
+escape 0;
