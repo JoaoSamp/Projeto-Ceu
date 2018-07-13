@@ -7,12 +7,11 @@ var SDL_Color bg = val SDL_Color(0x00,0x00,0x00,0xFF);
 var SDL_Rect rect = val SDL_Rect(100,100,20,50);
 var int velX = 0;
 var int velY = 0;
-var int vel = 2;
+var int vel = 4;
 
-var&? SDL_Init sdl = spawn SDL_Init("SDL 4", 800,480, bg);
+var&? SDL_Init sdl = spawn SDL_Init("Task 01 - WASD-Move  UP/DOWN-Change Speed", 800,480, bg);
 watching sdl do
-    loop do
-        par/or do
+        par do
 		loop do
 			var _SDL_KeyboardEvent&& key = await SDL_KEYDOWN;
 			if key:keysym.sym == _SDLK_w  then
@@ -43,11 +42,9 @@ watching sdl do
 			end
 		end
 	with
-		loop do
-			every (vel)ms do
-				rect.x = rect.x + velX;
-				rect.y = rect.y + velY;
-			end
+		every (vel)ms do
+			rect.x = rect.x + velX;
+			rect.y = rect.y + velY;
 		end
 	with 
 		every SDL_REDRAW do
@@ -55,7 +52,6 @@ watching sdl do
 			_SDL_RenderFillRect(&&sdl.ren, &&rect as _SDL_Rect&&);
 		end
         end
-    end
 end
 
 
