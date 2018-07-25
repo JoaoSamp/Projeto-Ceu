@@ -1,0 +1,112 @@
+#include "c.ceu"
+#include "sdl/sdl.ceu"
+
+var SDL_Color bg = val SDL_Color(0x00,0x00,0x00,0xFF);
+
+code/await Animation (var int w, var int h, var int fps, var& SDL_Rect charRect, var& _SDL_Renderer ren, var& SDL_Open_Image img ) -> none
+do
+    var SDL_Rect frame = val SDL_Rect(0, 0, w, h);
+    par do
+        every (1000/fps)ms do
+            frame.y = frame.y + h;
+            if frame.y >= img.tex.height then
+                frame.y = 0;
+            end
+        end
+    with
+        every SDL_REDRAW do
+            _SDL_RenderCopy(&&ren, &&img.tex.tex, &&frame as _SDL_Rect&&, &&charRect as _SDL_Rect&&);
+        end
+    end
+end
+
+code/await Character (var int x, var int y, var int w, var int h, var& _SDL_Renderer ren) -> none
+do
+    event int update_animation;
+    var& SDL_Open_Image img_idle =
+        spawn SDL_Open_Image(&ren, "assets/img/idle.png");
+    var& SDL_Open_Image img_walk_down =
+        spawn SDL_Open_Image(&ren, "assets/img/walk-down.png");
+    var& SDL_Open_Image img_walk_up =
+        spawn SDL_Open_Image(&ren, "assets/img/walk-up.png");
+    var& SDL_Open_Image img_walk_left =
+        spawn SDL_Open_Image(&ren, "assets/img/walk-left.png");
+    var& SDL_Open_Image img_walk_right =
+        spawn SDL_Open_Image(&ren, "assets/img/walk-right.png");
+    var SDL_Rect char_rect = val SDL_Rect(x, y, w, h);
+    var int current_state = 1;
+    var real max_speed = 100;
+    var int velX = 0;
+    var int velY = 0;
+
+    par do
+        loop do            
+            pool[1] Animation current_anim;
+            if current_state ==  1 then
+                spawn Animation (32, 32, 4, &char_rect, &ren, &img_idle) in current_anim;
+            else/if current_state == 2 then
+                spawn Animation (32, 32, 8, &char_rect, &ren, &img_walk_down) in current_anim;
+            else/if current_state == 3 then
+                spawn Animation (32, 32, 8, &char_rect, &ren, &img_walk_up) in current_anim;
+            else/if current_state == 4 then
+                spawn Animation (32, 32, 8, &char_rect, &ren, &img_walk_left) in current_anim;
+            else/if current_state == 5 then
+                spawn Animation (32, 32, 8, &char_rect, &ren, &img_walk_right) in current_anim;
+            else
+                break;
+            end
+            var int new_state = await update_animation until new_state!=current_state;
+            current_state = new_state;
+        end
+    with    
+        var _SDL_KeyboardEvent&& key;
+        every key in SDL_KEYDOWN do
+            if key:keysym.sym == _SDLK_w  then
+                velY = -1;
+                emit update_animation(3);
+            else/if key:keysym.sym == _SDLK_s then
+                velY = 1;
+                emit update_animation(2);
+            else/if key:keysym.sym == _SDLK_d then
+                velX = 1;
+                emit update_animation(5);
+            else/if key:keysym.sym == _SDLK_a then
+                velX = -1;
+                emit update_animation(4);
+            end
+        end
+    with
+        var _SDL_KeyboardEvent&& key;
+        every key in SDL_KEYUP do
+            if key:keysym.sym == _SDLK_w and velY < 0 then
+                velY = 0;
+            else/if key:keysym.sym == _SDLK_s and velY > 0 then
+                velY = 0;
+            else/if key:keysym.sym == _SDLK_d and velX > 0 then
+                velX = 0;
+            else/if key:keysym.sym == _SDLK_a and velX < 0 then
+                velX = 0;           
+            end            
+            if velX ==0 and velY == 0 then
+                if current_state != 1 then
+                    emit update_animation(1);
+                end
+            end
+        end
+    with
+        var int dt;
+        every dt in SDL_DT do
+            var real vel = ((max_speed * dt)/1000);
+            char_rect.x = char_rect.x + ((vel * velX) as int);
+            char_rect.y = char_rect.y + ((vel * velY) as int);
+        end
+    end
+end
+
+var&? SDL_Init sdl = spawn SDL_Init("Animation Test", 640,480, bg);
+watching sdl do
+    spawn Character (100, 100, 64, 64, &sdl.ren);
+    await FOREVER;
+end
+
+escape 0;
