@@ -1,0 +1,20 @@
+code/await Animation (var int w, var int h, var int fps, var& SDL_Rect charRect, var& _SDL_Renderer ren, var& SDL_Open_Image img ) -> none
+do
+    var SDL_Rect frame = val SDL_Rect(0, 0, w, h);
+    par do
+        every (1000/fps)ms do
+            frame.x = frame.x + w;
+            if frame.x >= img.tex.width then
+                frame.x = 0;
+                frame.y = frame.y + h;
+                if frame.y >= img.tex.height then
+                    frame.y = 0;
+                end
+            end
+        end
+    with
+        every SDL_REDRAW do
+            _SDL_RenderCopy(&&ren, &&img.tex.tex, &&frame as _SDL_Rect&&, &&charRect as _SDL_Rect&&);
+        end
+    end
+end

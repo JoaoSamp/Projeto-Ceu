@@ -1,0 +1,156 @@
+#include "tools/animation.ceu"
+
+code/await State(var real horiz_speed, var real vert_speed, var& SDL_Rect char_rect, var& _SDL_Renderer ren, var& SDL_Open_Image img) -> none
+do
+    par do
+        await Animation (32, 32, 8, &char_rect, &ren, &img);
+    with    
+        var int dt;
+        every dt in SDL_DT do
+            var real x_speed = ((horiz_speed * dt)/1000);
+            var real y_speed = ((vert_speed * dt)/1000);
+            char_rect.x = char_rect.x + (x_speed as int);
+            char_rect.y = char_rect.y + (y_speed as int);
+        end
+    end
+end
+
+code/await Glide (var& SDL_Rect char_rect, var& _SDL_Renderer ren, var& SDL_Open_Image img) -> none
+do
+    var real normal_speed = 50;
+    var real gravity = 50;
+    par/or do
+        await State(normal_speed, gravity, &char_rect, &ren, &img);
+    with            
+        every SDL_DT do
+            var u8&& key_state = _SDL_GetKeyboardState(null);
+            if key_state[_SDL_SCANCODE_A] != key_state[_SDL_SCANCODE_D] then
+                break;
+            end
+        end
+    end
+end
+
+code/await Foward_Backward(var real horiz_speed, var& SDL_Rect char_rect, var& _SDL_Renderer ren, var& SDL_Open_Image img) -> none
+do
+    var real gravity = 50;
+    par/or do
+        await State(horiz_speed, gravity, &char_rect, &ren, &img);
+    with
+        every SDL_DT do
+            var u8&& key_state = _SDL_GetKeyboardState(null);
+            if key_state[_SDL_SCANCODE_A] == key_state[_SDL_SCANCODE_D] then
+                break;
+            end
+        end
+    with
+        var _SDL_KeyboardEvent&& key = await SDL_KEYUP until (key:keysym.sym == _SDLK_a 
+                                                            or key:keysym.sym == _SDLK_d);
+    end
+end
+
+code/await Fly_Dive (var real vert_speed, var& SDL_Rect char_rect, var& _SDL_Renderer ren, var& SDL_Open_Image img) -> none
+do
+    var real foward_speed = 100;
+    var real backward_speed = -100;
+    var real normal_speed = 50;
+    par/or do
+        par do
+            await Animation (32, 32, 8, &char_rect, &ren, &img);
+        with    
+            var int dt;
+            every dt in SDL_DT do  
+                var real x_speed;      
+                var u8&& key_state = _SDL_GetKeyboardState(null);
+                if key_state[_SDL_SCANCODE_A] != key_state[_SDL_SCANCODE_D] then
+                    if key_state[_SDL_SCANCODE_A] == 1 then
+                        x_speed = backward_speed;
+                    else
+                        x_speed = foward_speed;
+                    end
+                else
+                    x_speed = normal_speed;
+                end
+                var real y_speed = ((vert_speed * dt)/1000);
+                x_speed = ((x_speed * dt)/1000);
+                char_rect.x = char_rect.x + (x_speed as int);
+                char_rect.y = char_rect.y + (y_speed as int);
+            end
+        end
+    with
+        every SDL_DT do
+            var u8&& key_state = _SDL_GetKeyboardState(null);
+            if key_state[_SDL_SCANCODE_W] == key_state[_SDL_SCANCODE_S] then
+                break;
+            end
+        end
+    with
+        var _SDL_KeyboardEvent&& key = await SDL_KEYUP until (key:keysym.sym == _SDLK_w
+                                                            or key:keysym.sym == _SDLK_s);
+    end
+end
+
+code/await Character (var int x, var int y, var int w, var int h, var& _SDL_Renderer ren) -> none
+do
+    var& SDL_Open_Image img_backward =
+        spawn SDL_Open_Image(&ren, "assets/img/char/walker-backward.png");
+    var& SDL_Open_Image img_dead =
+        spawn SDL_Open_Image(&ren, "assets/img/char/walker-dead.png");
+    var& SDL_Open_Image img_dive =
+        spawn SDL_Open_Image(&ren, "assets/img/char/walker-dive.png");
+    var& SDL_Open_Image img_flying =
+        spawn SDL_Open_Image(&ren, "assets/img/char/walker-fly.png");
+    var& SDL_Open_Image img_foward =
+        spawn SDL_Open_Image(&ren, "assets/img/char/walker-foward.png");
+    var& SDL_Open_Image img_glide =
+        spawn SDL_Open_Image(&ren, "assets/img/char/walker-glide.png");
+
+    var SDL_Rect char_rect = val SDL_Rect(x, y, w, h);
+    var real flying_speed = 100;
+    var real foward_speed = 100;
+    var real backward_speed = -100;
+    var real normal_speed = 50;
+    var real gravity = 50;
+
+    loop do
+        par/or do
+            await Glide(&char_rect, &ren, &img_glide);
+
+            var u8&& key_state = _SDL_GetKeyboardState(null);
+            var& SDL_Open_Image img;
+            var real x_speed;
+            if key_state[_SDL_SCANCODE_A] == 1 then
+                x_speed = backward_speed;
+                img = &img_backward;
+            else
+                x_speed = foward_speed;
+                img = &img_foward;
+            end
+            await Foward_Backward(x_speed, &char_rect, &ren, &img);
+            continue;
+
+        with
+            every SDL_DT do
+                var u8&& key_state = _SDL_GetKeyboardState(null);
+                if key_state[_SDL_SCANCODE_S] != key_state[_SDL_SCANCODE_W] then
+                    break;
+                end
+            end
+        end
+
+        var real y_speed;
+        var u8&& key_state = _SDL_GetKeyboardState(null);
+        var& SDL_Open_Image img;
+
+        if key_state[_SDL_SCANCODE_S] == 1 then
+            y_speed = flying_speed;
+            img = &img_dive;
+        else
+            y_speed = -flying_speed;
+            img = &img_flying;
+        end
+
+        await Fly_Dive(y_speed, &char_rect, &ren, &img);
+    end
+
+end
