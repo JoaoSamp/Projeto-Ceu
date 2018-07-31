@@ -19,23 +19,21 @@ do
     var int backward_speed  = -100;
     var int normal_speed    = 50;
     var int gravity         = 50;
+    event int e_anim;
 
     code/await Glide (none) -> none
     do
         event none check_exit_keys;
         var SDL_Rect speed      = val SDL_Rect(outer.normal_speed, outer.gravity,0,0);
-        var& SDL_Rect c_rect    = &outer.char_rect;
+        var& SDL_Rect c_rect    = &outer.char_rect;        
+        emit outer.e_anim(0);
         par/or do
-            par do
-                var int dt;
-                every dt in SDL_DT do
-                    var real speed_x = ((speed.x * dt)/1000);
-                    var real speed_y = ((speed.y * dt)/1000);
-                    c_rect.x = c_rect.x + (speed_x as int);
-                    c_rect.y = c_rect.y + (speed_y as int);
-                end
-            with
-                await Animation (32, 32, 8, &c_rect, &outer.ren, &outer.img_glide);
+            var int dt;
+            every dt in SDL_DT do
+                var real speed_x = ((speed.x * dt)/1000);
+                var real speed_y = ((speed.y * dt)/1000);
+                c_rect.x = c_rect.x + (speed_x as int);
+                c_rect.y = c_rect.y + (speed_y as int);
             end
         with            
             loop do
@@ -62,30 +60,27 @@ do
 
     code/await Foward_Backward(none) -> none
     do
-        var& SDL_Open_Image img;
         var int speed_x;
+        var int anim;
         var u8&& key_state = _SDL_GetKeyboardState(null);
         if key_state[_SDL_SCANCODE_A] == 1 then
             speed_x = outer.backward_speed;
-            img     = &outer.img_backward;
+            anim    = 2;
         else
             speed_x = outer.foward_speed;
-            img     = &outer.img_foward;
+            anim     = 1;
         end
 
+        emit outer.e_anim(anim);
         var& SDL_Rect c_rect = &outer.char_rect;
         var SDL_Rect speed = val SDL_Rect(speed_x, outer.gravity,0,0);
         par/or do
-            par do
-                var int dt;
-                every dt in SDL_DT do
-                    var real speed_x = ((speed.x * dt)/1000);
-                    var real speed_y = ((speed.y * dt)/1000);
-                    c_rect.x = c_rect.x + (speed_x as int);
-                    c_rect.y = c_rect.y + (speed_y as int);
-                end
-            with
-                await Animation (32, 32, 8, &c_rect, &outer.ren, &img);
+            var int dt;
+            every dt in SDL_DT do
+                var real speed_x = ((speed.x * dt)/1000);
+                var real speed_y = ((speed.y * dt)/1000);
+                c_rect.x = c_rect.x + (speed_x as int);
+                c_rect.y = c_rect.y + (speed_y as int);
             end
         with
             loop do
@@ -105,17 +100,19 @@ do
     code/await Fly_Dive (none) -> none
     do
         event none change_x_speed;
-        var& SDL_Open_Image img;
+        var int anim;
         var SDL_Rect speed = val SDL_Rect(0, 0, 0, 0);
         var u8&& key_state = _SDL_GetKeyboardState(null);
 
         if key_state[_SDL_SCANCODE_S] == 1 then
             speed.y = outer.flying_speed;
-            img     = &outer.img_dive;
+            anim    = 5;
         else
-            speed.y = -(outer.flying_speed);
-            img     = &outer.img_flying;
+            speed.y = -(outer.flying_speed);            
+            anim    = 4;
         end
+
+        emit outer.e_anim(anim);
 
         var& SDL_Rect c_rect = &outer.char_rect;
         par/or do
@@ -127,8 +124,6 @@ do
                     c_rect.x = c_rect.x + (speed_x as int);
                     c_rect.y = c_rect.y + (speed_y as int);
                 end
-            with
-                await Animation (32, 32, 8, &c_rect, &outer.ren, &img);
             with   
                 loop do
                     var _SDL_KeyboardEvent&& key = await SDL_KEYDOWN until (key:keysym.sym == _SDLK_a 
@@ -171,35 +166,67 @@ do
         end
     end
 
-
-    loop do
-        event none check_exit_keys;
-        par/or do
-            await Glide();
-            await Foward_Backward();
-            continue;
-        with
-            loop do
-                var _SDL_KeyboardEvent&& key = await SDL_KEYDOWN until (key:keysym.sym == _SDLK_w 
-                                                                    or key:keysym.sym == _SDLK_s);
-                emit check_exit_keys;
-            end
-        with
-            loop do
-                var _SDL_KeyboardEvent&& key = await SDL_KEYUP until (key:keysym.sym == _SDLK_s
-                                                                    or key:keysym.sym == _SDLK_w);
-                emit check_exit_keys;
-            end
-        with
-            loop do             
-                var u8&& key_state = _SDL_GetKeyboardState(null);
-                if key_state[_SDL_SCANCODE_W] != key_state[_SDL_SCANCODE_S] then
-                    break;
-                end
-                await check_exit_keys;
+    par do 
+        var int anim = 0;
+        var bool pending = false;
+        spawn do
+            every anim in e_anim do
+                pending = true;
             end
         end
-        await Fly_Dive();
+        loop do
+            var& SDL_Open_Image img;
+            if anim == 1 then
+                img = &img_foward;
+            else/if anim == 2 then
+                img = &img_backward;
+            else/if anim == 3 then
+                img = &img_backward;
+            else/if anim == 4 then
+                img = &img_flying;
+            else/if anim == 5 then
+                img = &img_dive;
+            else 
+                img = &img_glide;
+            end
+            loop do
+                await Animation (32, 32, 8, &char_rect, &ren, &img);
+                if pending then
+                    break;
+                end
+            end
+            pending = false;
+        end
+    with
+        loop do
+            event none check_exit_keys;
+            par/or do
+                await Glide();
+                await Foward_Backward();
+                continue;
+            with
+                loop do
+                    var _SDL_KeyboardEvent&& key = await SDL_KEYDOWN until (key:keysym.sym == _SDLK_w 
+                                                                        or key:keysym.sym == _SDLK_s);
+                    emit check_exit_keys;
+                end
+            with
+                loop do
+                    var _SDL_KeyboardEvent&& key = await SDL_KEYUP until (key:keysym.sym == _SDLK_s
+                                                                        or key:keysym.sym == _SDLK_w);
+                    emit check_exit_keys;
+                end
+            with
+                loop do             
+                    var u8&& key_state = _SDL_GetKeyboardState(null);
+                    if key_state[_SDL_SCANCODE_W] != key_state[_SDL_SCANCODE_S] then
+                        break;
+                    end
+                    await check_exit_keys;
+                end
+            end
+            await Fly_Dive();
+        end
     end
 
 end
