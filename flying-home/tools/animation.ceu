@@ -1,4 +1,4 @@
-code/await Animation (var int w, var int h, var int fps, var& SDL_Rect charRect, var& _SDL_Renderer ren, var& SDL_Open_Image img ) -> none
+code/await Animation (var int w, var int h, var int fps, var& SDL_Rect draw_rect, var& _SDL_Renderer ren, var& SDL_Open_Image img ) -> none
 do
     var SDL_Rect frame = val SDL_Rect(0, 0, w, h);
     par do
@@ -14,7 +14,7 @@ do
         end
     with
         every SDL_REDRAW do
-            _SDL_RenderCopy(&&ren, &&img.tex.tex, &&frame as _SDL_Rect&&, &&charRect as _SDL_Rect&&);
+            _SDL_RenderCopy(&&ren, &&img.tex.tex, &&frame as _SDL_Rect&&, &&draw_rect as _SDL_Rect&&);
         end
     end
 end
