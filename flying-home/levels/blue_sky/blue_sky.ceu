@@ -1,0 +1,11 @@
+#include "map.ceu"
+#include "clouds.ceu"
+#include "rings.ceu"
+
+code/await Blue_Sky(var int x, var int y, var int w, var int h, var& _SDL_Renderer ren) -> NEVER
+do
+	var& Map map = spawn Map (x, y, w, h, &ren);
+	spawn Clouds (&map);
+	spawn Rings (&map);
+	await FOREVER;
+end

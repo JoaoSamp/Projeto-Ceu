@@ -2,8 +2,7 @@
 #include "sdl/sdl.ceu"
 #include "tools/animation.ceu"
 #include "character.ceu"
-#include "levels/blue_sky/clouds.ceu"
-#include "levels/blue_sky/map.ceu"
+#include "levels/blue_sky/blue_sky.ceu"
 
 var SDL_Color bg = val SDL_Color(65,225,225,0);
 
