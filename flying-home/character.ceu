@@ -1,4 +1,4 @@
-code/await Character (var int x, var int y, var int w, var int h, var& _SDL_Renderer ren) -> none
+code/await Character (var int x, var int y, var int w, var int h, var& _SDL_Renderer ren) -> NEVER
 do
     var& SDL_Open_Image img_backward =
         spawn SDL_Open_Image(&ren, "assets/img/char/walker-backward.png");
@@ -13,14 +13,15 @@ do
     var& SDL_Open_Image img_glide =
         spawn SDL_Open_Image(&ren, "assets/img/char/walker-glide.png");
 
-    var int flying_speed    = 100;
-    var int foward_speed    = 100;
-    var int backward_speed  = -100;
-    var int normal_speed    = 50;
+    var int flying_speed    = 150;
+    var int foward_speed    = 150;
+    var int backward_speed  = -150;
+    var int normal_speed    = 0;
     var int gravity         = 50;
     event int e_anim;
 
     var SDL_Rect char_rect  = val SDL_Rect(x, y, w, h);
+    var SDL_Rect body_rect  = val SDL_Rect(14, 18, 10, 16);
     var SDL_Rect speed      = val SDL_Rect(normal_speed, gravity, 0, 0);
 
     par do 
@@ -62,6 +63,11 @@ do
                 var real speed_y = ((speed.y * dt)/1000);
                 char_rect.x = char_rect.x + (speed_x as int);
                 char_rect.y = char_rect.y + (speed_y as int);
+                if char_rect.y > 576 - 32 - char_rect.h + body_rect.y - (body_rect.h/2) then
+                    char_rect.y = 576 - 32 - char_rect.h + body_rect.y - (body_rect.h/2);
+                else/if char_rect.y < 32 - body_rect.y then
+                    char_rect.y = 32 - body_rect.y;
+                end
             end
         end
         loop do
@@ -106,5 +112,4 @@ do
             end
         end
     end
-
 end

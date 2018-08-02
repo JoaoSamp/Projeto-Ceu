@@ -2,16 +2,17 @@
 #include "sdl/sdl.ceu"
 #include "tools/animation.ceu"
 #include "character.ceu"
-#include "levels/blue_sky/clouds.ceu"
+#include "levels/blue_sky/cloud.ceu"
+#include "levels/blue_sky/rings.ceu"
 #include "levels/blue_sky/map.ceu"
 
 var SDL_Color bg = val SDL_Color(65,225,225,0);
 
 
-var&? SDL_Init sdl = spawn SDL_Init("Flying Home - Basic Character", 640,544, bg);
+var&? SDL_Init sdl = spawn SDL_Init("Flying Home - Basic Character", 1024, 576, bg);
 watching sdl do
-    spawn Blue_Sky (0, 0, 0, 0, &sdl.ren);
     spawn Character (100, 100, 64, 64, &sdl.ren);
+	spawn Map (0, 0, 0, 0, &sdl.ren);
     await FOREVER;
 end
 

@@ -1,0 +1,55 @@
+code/await Ring_Idle_Animation (var& _SDL_Renderer ren) 
+		-> (var SDL_Rect frame, var& SDL_Open_Image img_ring_idle, event none close_animation)
+			-> NEVER
+do
+	img_ring_idle = spawn SDL_Open_Image(&ren, "assets/img/items/smallRing-idle.png");
+
+	frame = val SDL_Rect(0, 0, 32, 32);
+	var int anim_fps = 12;
+	par/or do
+		every (1000/anim_fps)ms do
+		    frame.x = frame.x + frame.w;
+		    if frame.x >= img_ring_idle.tex.width then
+		        frame.x = 0;
+		        frame.y = frame.y + frame.h;
+		        if frame.y >= img_ring_idle.tex.height then
+		            frame.y = 0;
+		        end
+		    end
+		end
+	with
+		await close_animation;
+	end
+end
+
+code/await Ring (var int x, var int y, var& Ring_Idle_Animation anim, var& _SDL_Renderer ren) 
+			-> (event none collision) 
+					-> none
+do		
+    var& SDL_Open_Image img_ring_destroy =
+        spawn SDL_Open_Image(&ren, "assets/img/items/smallRing-destroy.png");
+
+	var SDL_Rect ring_rect = val SDL_Rect(x, y, 64, 64);
+    var SDL_Rect speed      = val SDL_Rect(-100, 0, 0, 0);
+
+    par/or do
+    	par/or do
+        	every SDL_REDRAW do
+        		if ring_rect.x < 1024 and ring_rect.x > -ring_rect.w then
+        			_SDL_RenderCopy(&&ren, &&anim.img_ring_idle.tex.tex, &&anim.frame as _SDL_Rect&&, &&ring_rect as _SDL_Rect&&);
+        		end
+        	end
+		with 
+			await collision;
+		end		
+		await Animation (32, 32, 12, &ring_rect, &ren, &img_ring_destroy);
+	with
+        var int dt;
+        every dt in SDL_DT do
+            var real speed_x = ((speed.x * dt)/1000);
+            var real speed_y = ((speed.y * dt)/1000);
+            ring_rect.x = ring_rect.x + (speed_x as int);
+            ring_rect.y = ring_rect.y + (speed_y as int);
+        end
+	end	
+end
