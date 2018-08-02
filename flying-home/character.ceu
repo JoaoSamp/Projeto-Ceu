@@ -16,11 +16,12 @@ do
     var int flying_speed    = 150;
     var int foward_speed    = 150;
     var int backward_speed  = -150;
-    var int normal_speed    = 50;
+    var int normal_speed    = 0;
     var int gravity         = 50;
     event int e_anim;
 
     var SDL_Rect char_rect  = val SDL_Rect(x, y, w, h);
+    var SDL_Rect body_rect  = val SDL_Rect(14, 18, 10, 16);
     var SDL_Rect speed      = val SDL_Rect(normal_speed, gravity, 0, 0);
 
     par do 
@@ -62,6 +63,11 @@ do
                 var real speed_y = ((speed.y * dt)/1000);
                 char_rect.x = char_rect.x + (speed_x as int);
                 char_rect.y = char_rect.y + (speed_y as int);
+                if char_rect.y > 576 - 32 - char_rect.h + body_rect.y - (body_rect.h/2) then
+                    char_rect.y = 576 - 32 - char_rect.h + body_rect.y - (body_rect.h/2);
+                else/if char_rect.y < 32 - body_rect.y then
+                    char_rect.y = 32 - body_rect.y;
+                end
             end
         end
         loop do
@@ -106,5 +112,4 @@ do
             end
         end
     end
-
 end

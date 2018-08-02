@@ -1,21 +1,28 @@
-code/await Rings (var& Map map) -> NEVER
+code/await Rings (var& Map map, var& _SDL_Renderer ren) -> NEVER
 do		
-    var& SDL_Open_Image img_cloud_idle =
-        spawn SDL_Open_Image(&map.ren, "assets/img/items/smallRing-idle.png");
-    var& SDL_Open_Image img_cloud_destroy =
-        spawn SDL_Open_Image(&map.ren, "assets/img/items/smallRing-destroy.png");
+    var& SDL_Open_Image img_ring_idle =
+        spawn SDL_Open_Image(&ren, "assets/img/items/smallRing-idle.png");
+    var& SDL_Open_Image img_ring_destroy =
+        spawn SDL_Open_Image(&ren, "assets/img/items/smallRing-destroy.png");
 
 	var SDL_Rect frame 		= val SDL_Rect(0, 0, 32, 32);
-	var SDL_Rect ring_rect = val SDL_Rect(0, 0, 64, 64);
+	var SDL_Rect ring_rect 	= val SDL_Rect(0, 0, 64, 64);
     var int idle_fps = 10;
+
+    code/await Destroy_Ring (var int index) -> none
+    do
+    	outer.map.tile_objs[index] = 0;
+		var SDL_Rect position = call outer.map.Get_Pos_By_Index( index );
+    	await Animation (32, 32, 8, &position, &outer.ren, &outer.img_ring_destroy);
+    end
 
     par do
 	    every (1000/idle_fps)ms do
 	        frame.x = frame.x + frame.w;
-	        if frame.x >= img_cloud_idle.tex.width then
+	        if frame.x >= img_ring_idle.tex.width then
 	            frame.x = 0;
 	            frame.y = frame.y + frame.h;
-	            if frame.y >= img_cloud_idle.tex.height then
+	            if frame.y >= img_ring_idle.tex.height then
 	                frame.y = 0;
 	            end
 	        end
@@ -23,15 +30,15 @@ do
 	with
 		every SDL_REDRAW do
 			var int i;
-			loop i in [(-map.size.x / map.tile.w) -> (-map.size.x / map.tile.w) + (640/map.tile.w)] do
+			loop i in [(-map.size.x / map.tile.w) -> (-map.size.x / map.tile.w) + (1024/map.tile.w)] do
 				var int j;
-				loop j in [map.size.y / map.tile.h -> 448/map.tile.h] do
+				loop j in [map.size.y / map.tile.h -> 480/map.tile.h] do
 					var int index = i + (j * map.tile_map.w);
 					if map.tile_objs[index] == 2 then
 						var SDL_Rect position = call map.Get_Pos_By_Index( index );
 						ring_rect.x = position.x;
 						ring_rect.y = position.y;
-            			_SDL_RenderCopy(&&map.ren, &&img_cloud_idle.tex.tex, &&frame as _SDL_Rect&&, &&ring_rect as _SDL_Rect&&);
+            			_SDL_RenderCopy(&&ren, &&img_ring_idle.tex.tex, &&frame as _SDL_Rect&&, &&ring_rect as _SDL_Rect&&);
 					end
 				end
 			end

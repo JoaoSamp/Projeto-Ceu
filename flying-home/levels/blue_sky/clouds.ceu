@@ -1,9 +1,7 @@
-code/await Clouds (var& Map map) -> NEVER
+code/await Clouds (var& Map map, var& _SDL_Renderer ren) -> NEVER
 do		
     var& SDL_Open_Image img_cloud_idle =
-        spawn SDL_Open_Image(&map.ren, "assets/img/clouds/smallCloud-idle.png");
-    var& SDL_Open_Image img_cloud_destroy =
-        spawn SDL_Open_Image(&map.ren, "assets/img/clouds/smallCloud-destroy.png");
+        spawn SDL_Open_Image(&ren, "assets/img/clouds/smallCloud-idle.png");
 
 	var SDL_Rect frame 		= val SDL_Rect(0, 0, 32, 32);
 	var SDL_Rect cloud_rect = val SDL_Rect(0, 0, 64, 64);
@@ -23,18 +21,40 @@ do
 	with
 		every SDL_REDRAW do
 			var int i;
-			loop i in [(-map.size.x / map.tile.w) -> (-map.size.x / map.tile.w) + (640/map.tile.w)] do
+			loop i in [(-map.size.x / map.tile.w) -> (-map.size.x / map.tile.w) + (1024/map.tile.w)] do
 				var int j;
-				loop j in [map.size.y / map.tile.h -> 448/map.tile.h] do
+				loop j in [0 -> map.tile_map.h - 1] do
 					var int index = i + (j * map.tile_map.w);
 					if map.tile_objs[index] == 1 then
 						var SDL_Rect position = call map.Get_Pos_By_Index( index );
 						cloud_rect.x = position.x;
 						cloud_rect.y = position.y;
-            			_SDL_RenderCopy(&&map.ren, &&img_cloud_idle.tex.tex, &&frame as _SDL_Rect&&, &&cloud_rect as _SDL_Rect&&);
+            			_SDL_RenderCopy(&&ren, &&img_cloud_idle.tex.tex, &&frame as _SDL_Rect&&, &&cloud_rect as _SDL_Rect&&);
 					end
 				end
 			end
+		end
+	end
+end
+
+
+code/await Destroy_Cloud (var int index, var& Map map, var& _SDL_Renderer ren) -> none
+do
+    var& SDL_Open_Image img_cloud_destroy =
+        spawn SDL_Open_Image(&ren, "assets/img/clouds/smallCloud-destroy.png");
+
+	map.tile_objs[index]		= 0;
+	var SDL_Rect position		= call map.Get_Pos_By_Index( index );
+	var SDL_Rect cloud_rect	= val SDL_Rect(position.x, position.y, 64, 64);
+
+	par/or do
+		await Animation (32, 32, 12, &cloud_rect, &ren, &img_cloud_destroy);
+	with
+		var int dt;
+		every dt in SDL_DT do
+			position		= call map.Get_Pos_By_Index( index );
+			cloud_rect.x = position.x;
+			cloud_rect.y = position.y;
 		end
 	end
 end
