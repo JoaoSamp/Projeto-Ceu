@@ -22,7 +22,7 @@ do
 	end
 end
 
-code/await Ring (var int x, var int y, var& Ring_Idle_Animation anim, var& _SDL_Renderer ren) 
+code/await Ring (var& SDL_Rect speed, var int x, var int y, var& Ring_Idle_Animation anim, var& _SDL_Renderer ren) 
 			-> (event none collision) 
 					-> none
 do		
@@ -30,7 +30,6 @@ do
         spawn SDL_Open_Image(&ren, "assets/img/items/smallRing-destroy.png");
 
 	var SDL_Rect ring_rect = val SDL_Rect(x, y, 64, 64);
-    var SDL_Rect speed      = val SDL_Rect(-100, 0, 0, 0);
 
     par/or do
     	par/or do

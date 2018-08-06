@@ -2,12 +2,14 @@ code/await Map (var int x, var int y, var int w, var int h, var& _SDL_Renderer r
             -> (var[] int tile_objs, var SDL_Rect size, var SDL_Rect tile, var SDL_Rect tile_map, var SDL_Rect border_rect) 
                 -> NEVER
 do
+    event int create_tile_column;
     tile                = val SDL_Rect(0,0,64,64);
     border_rect         = val SDL_Rect(0, 0, tile.w, tile.h/2);
-    tile_map            = val SDL_Rect(0, 0, 300, 8);
+    tile_map            = val SDL_Rect(0, tile.h/2, 300, 8);
     size                = val SDL_Rect(0, border_rect.h , tile_map.w*tile.w, tile_map.h*tile.h);
 
-    var int map_speed_x = -150;
+    var SDL_Rect map_speed = val SDL_Rect(-150, 0, 0, 0);
+    var int border_speed_x = -200;
 
     var& SDL_Open_Image img_border =
         spawn SDL_Open_Image(&ren, "assets/img/clouds/cloud-border.png");
@@ -26,7 +28,7 @@ do
     do
         var int x = ind % outer.tile_map.w;
         var int y = (ind - x) / outer.tile_map.w;
-        var SDL_Rect position = val SDL_Rect( (x * outer.tile.w) + outer.size.x, (y * outer.tile.h) + outer.size.y, 0, 0);
+        var SDL_Rect position = val SDL_Rect((x * outer.tile.w) + outer.tile_map.x, (y * outer.tile.h) + outer.tile_map.y, 0, 0);
         escape position;
     end
 
@@ -44,18 +46,22 @@ do
     var& Cloud_Idle_Animation cl_anim = spawn Cloud_Idle_Animation( &ren );
     pool[] Cloud level_clouds;
     var& Ring_Idle_Animation rg_anim = spawn Ring_Idle_Animation( &ren );
-    pool[] Cloud level_rings;
-    var int i;
-    loop i in [0 -> tile_map.w - 1] do
-        var int j;
-        loop j in [0 -> tile_map.h - 1] do
-            var int index = i + (j * tile_map.w);
-            if tile_objs[index] == 1 then
-                var SDL_Rect position = call Get_Pos_By_Index( index );
-                spawn Cloud(position.x, position.y, &cl_anim, &ren) in level_clouds;
-            else/if tile_objs[index] == 2 then
-                var SDL_Rect position = call Get_Pos_By_Index( index );
-                spawn Ring(position.x, position.y, &rg_anim, &ren) in level_rings;
+    pool[] Ring level_rings;
+
+    spawn do
+        var int x;
+        every x in create_tile_column do
+            var int j;
+            loop j in [0 -> tile_map.h - 1] do
+                var int index = x + (j * tile_map.w);
+                if tile_objs[index] == 1 then
+                    var SDL_Rect position = call Get_Pos_By_Index( index );
+                    spawn Cloud( &map_speed, position.x + 1088, position.y, &cl_anim, &ren) in level_clouds;
+
+                else/if tile_objs[index] == 2 then
+                    var SDL_Rect position = call Get_Pos_By_Index( index );
+                    spawn Ring( &map_speed, position.x  + 1088, position.y, &rg_anim, &ren) in level_rings;
+                end
             end
         end
     end
@@ -75,11 +81,21 @@ do
         end
     with
         var int dt;
+        var int column = 0;
         every dt in SDL_DT do
-            var real speed_x = ((map_speed_x * dt)/1000);
+            var real speed_x = ((border_speed_x * dt)/1000);
             size.x = size.x + (speed_x as int);
             if size.x <= -tile.w then
                 size.x = 0;
+            end
+
+            speed_x = ((map_speed.x * dt)/1000);
+            var real speed_y = ((map_speed.y * dt)/1000);
+            tile_map.x = tile_map.x + (speed_x as int);
+            tile_map.y = tile_map.y + (speed_y as int);
+            if -tile_map.x/tile.w != column then
+                emit create_tile_column(column);
+                column = -tile_map.x/tile.w;
             end
         end
     end

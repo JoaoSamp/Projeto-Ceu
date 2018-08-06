@@ -13,9 +13,9 @@ do
     var& SDL_Open_Image img_glide =
         spawn SDL_Open_Image(&ren, "assets/img/char/walker-glide.png");
 
-    var int flying_speed    = 150;
-    var int foward_speed    = 150;
-    var int backward_speed  = -150;
+    var int flying_speed    = 200;
+    var int foward_speed    = 200;
+    var int backward_speed  = -200;
     var int normal_speed    = 0;
     var int gravity         = 50;
     event int e_anim;
