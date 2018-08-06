@@ -1,4 +1,6 @@
-code/await Character (var int x, var int y, var int w, var int h, var& _SDL_Renderer ren) -> NEVER
+code/await Character (var int x, var int y, var int w, var int h, var& _SDL_Renderer ren)
+    -> (var SDL_Rect rect = val SDL_Rect(x, y, w, h))
+         -> NEVER
 do
     var& SDL_Open_Image img_backward =
         spawn SDL_Open_Image(&ren, "assets/img/char/walker-backward.png");
@@ -13,14 +15,13 @@ do
     var& SDL_Open_Image img_glide =
         spawn SDL_Open_Image(&ren, "assets/img/char/walker-glide.png");
 
-    var int flying_speed    = 200;
-    var int foward_speed    = 200;
-    var int backward_speed  = -200;
+    var int flying_speed    = 150;
+    var int foward_speed    = 150;
+    var int backward_speed  = -150;
     var int normal_speed    = 0;
     var int gravity         = 50;
     event int e_anim;
 
-    var SDL_Rect char_rect  = val SDL_Rect(x, y, w, h);
     var SDL_Rect body_rect  = val SDL_Rect(14, 18, 10, 16);
     var SDL_Rect speed      = val SDL_Rect(normal_speed, gravity, 0, 0);
 
@@ -48,7 +49,7 @@ do
                 img = &img_glide;
             end
             loop do
-                await Animation (32, 32, 8, &char_rect, &ren, &img);
+                await Animation (32, 32, 8, &rect, &ren, &img);
                 if pending then
                     break;
                 end
@@ -61,12 +62,12 @@ do
             every dt in SDL_DT do
                 var real speed_x = ((speed.x * dt)/1000);
                 var real speed_y = ((speed.y * dt)/1000);
-                char_rect.x = char_rect.x + (speed_x as int);
-                char_rect.y = char_rect.y + (speed_y as int);
-                if char_rect.y > 576 - 32 - char_rect.h + body_rect.y - (body_rect.h/2) then
-                    char_rect.y = 576 - 32 - char_rect.h + body_rect.y - (body_rect.h/2);
-                else/if char_rect.y < 32 - body_rect.y then
-                    char_rect.y = 32 - body_rect.y;
+                rect.x = rect.x + (speed_x as int);
+                rect.y = rect.y + (speed_y as int);
+                if rect.y > 576 - 32 - rect.h + body_rect.y - (body_rect.h/2) then
+                    rect.y = 576 - 32 - rect.h + body_rect.y - (body_rect.h/2);
+                else/if rect.y < 32 - body_rect.y then
+                    rect.y = 32 - body_rect.y;
                 end
             end
         end
