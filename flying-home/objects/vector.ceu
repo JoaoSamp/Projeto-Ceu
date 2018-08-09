@@ -1,0 +1,28 @@
+data Vector with
+	var real x;
+	var real y;
+end
+
+code/call Vec_Add( var Vector vec_a, var Vector vec_b ) -> Vector
+do
+	var Vector vec = val Vector(vec_a.x + vec_b.x, vec_a.y + vec_b.y);
+	escape vec;
+end
+
+code/call Vec_Sub( var Vector vec_a, var Vector vec_b ) -> Vector
+do
+	var Vector vec = val Vector(vec_a.x - vec_b.x, vec_a.y - vec_b.y);
+	escape vec;
+end
+
+code/call Vec_ScaMult( var Vector vec_a, var int sca ) -> Vector
+do
+	var Vector vec = val Vector(vec_a.x * sca, vec_a.y * sca);
+	escape vec;
+end
+
+code/call Vec_ScaDiv( var Vector vec_a, var int sca ) -> Vector
+do
+	var Vector vec = val Vector(vec_a.x / sca, vec_a.y / sca);
+	escape vec;
+end

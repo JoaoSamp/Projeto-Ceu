@@ -1,0 +1,15 @@
+data Aabb with
+	var Vector center;
+	var Vector half_size;
+end
+
+code/call Overlaps(var& Aabb a, var& Aabb b) -> bool
+do
+	if ( _abs(a.center.x - b.center.x) > a.half_size.x + b.half_size.x ) then
+		escape false;
+	end
+	if ( _abs(a.center.y - b.center.y) > a.half_size.y + b.half_size.y ) then
+		escape false;
+	end
+	escape true;
+end
