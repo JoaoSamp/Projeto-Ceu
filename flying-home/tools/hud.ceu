@@ -1,0 +1,23 @@
+code/await Hud (var&? Player plr, var& _SDL_Renderer ren) -> NEVER
+do
+    var& SDL_Open_Image img_heart_dest =
+        spawn SDL_Open_Image(&ren, "assets/img/hud/badHeart.png");
+    var& SDL_Open_Image img_heart =
+        spawn SDL_Open_Image(&ren, "assets/img/hud/goodHeart.png");
+
+    var SDL_Rect life_icon  = val SDL_Rect(0, 0, 16, 16);
+    var SDL_Rect life_size  = val SDL_Rect(0, 32, 32, 32);
+
+    every SDL_REDRAW do
+        var int i;
+        loop i in [1 -> plr!.current_life] do
+            life_size.x = life_size.x + life_size.w + 2;
+            _SDL_RenderCopy(&&ren, &&img_heart.tex.tex, &&life_icon as _SDL_Rect&&, &&life_size as _SDL_Rect&&);
+        end
+        loop i in [1 -> plr!.life_total - plr!.current_life] do
+            life_size.x = life_size.x + life_size.w + 2;
+            _SDL_RenderCopy(&&ren, &&img_heart_dest.tex.tex, &&life_icon as _SDL_Rect&&, &&life_size as _SDL_Rect&&);
+        end
+        life_size.x = -16;
+    end
+end
