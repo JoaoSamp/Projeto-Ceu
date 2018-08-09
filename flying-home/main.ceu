@@ -4,7 +4,6 @@
 #include "objects/aabb.ceu"
 #include "tools/draw-tools.ceu"
 #include "tools/animation.ceu"
-#include "chars/walker/player-data.ceu"
 #include "chars/walker/player.ceu"
 #include "tools/hud.ceu"
 #include "levels/blue_sky/level.ceu"
