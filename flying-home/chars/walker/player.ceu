@@ -1,0 +1,153 @@
+code/await Player (var Vector start_pos, var& _SDL_Renderer ren)
+    -> (var int life_total = 5, var int current_life = life_total, var Aabb aabb)
+         -> none
+do
+    var Vector size             = val Vector(10, 12);
+    var Vector sprite_size      = val Vector(32, 32);
+    var Vector sprite_offset    = val Vector(15, 18);
+    var& SDL_Open_Image img_backward    = spawn SDL_Open_Image(&ren, "assets/img/char/walker-backward.png");
+    var& SDL_Open_Image img_dead        = spawn SDL_Open_Image(&ren, "assets/img/char/walker-dead.png");
+    var& SDL_Open_Image img_dive        = spawn SDL_Open_Image(&ren, "assets/img/char/walker-dive.png");
+    var& SDL_Open_Image img_flying      = spawn SDL_Open_Image(&ren, "assets/img/char/walker-fly.png");
+    var& SDL_Open_Image img_foward      = spawn SDL_Open_Image(&ren, "assets/img/char/walker-foward.png");
+    var& SDL_Open_Image img_glide       = spawn SDL_Open_Image(&ren, "assets/img/char/walker-glide.png");
+
+    var Image_Quad iq_backward = val Image_Quad(&ren, &img_backward, &sprite_size, _);
+    var Image_Quad iq_dead     = val Image_Quad(&ren, &img_dead, &sprite_size, _);
+    var Image_Quad iq_dive     = val Image_Quad(&ren, &img_dive, &sprite_size, _);
+    var Image_Quad iq_flying   = val Image_Quad(&ren, &img_flying, &sprite_size, _);
+    var Image_Quad iq_foward   = val Image_Quad(&ren, &img_foward, &sprite_size, _);
+    var Image_Quad iq_glide    = val Image_Quad(&ren, &img_glide, &sprite_size, _);
+
+    aabb           = val Aabb(start_pos, call Vec_ScaDiv(size, 2));
+    var& Vector position    = &aabb.center;
+    var Vector scale        = val Vector(1,1);
+
+    var real flying_speed    = 90;
+    var real foward_speed    = 90;
+    var real normal_speed    = 0;
+    var real gravity         = 0;
+    event int e_anim;
+    event none destroy_player;
+
+    var Vector speed            = val Vector(normal_speed, gravity);
+
+    code/call Hit(var int dmg) -> none
+    do
+        outer.current_life = outer.current_life - dmg;
+        if outer.current_life < 0 then
+            outer.current_life = 0;
+        end
+        escape;
+    end
+
+    code/call Recover(var int life) -> none
+    do
+        outer.current_life = outer.current_life + life;
+        if outer.current_life > outer.life_total then
+            outer.current_life = outer.life_total;
+        end
+        escape ;
+    end
+
+    par/or do
+        par do 
+            var int anim = 0;
+            var bool pending = false;
+            spawn do
+                every anim in e_anim do
+                    pending = true;
+                end
+            end
+            loop do
+                var& Image_Quad quad;
+                if anim == 1 then
+                    quad = &iq_foward;
+                else/if anim == 2 then
+                    quad = &iq_backward;
+                else/if anim == 3 then
+                    quad = &iq_flying;
+                else/if anim == 4 then
+                    quad = &iq_dive;
+                else 
+                    quad = &iq_glide;
+                end
+                loop do
+                    await Animation (quad, &position, &scale, &sprite_offset, 8);
+                    if pending then
+                        break;
+                    end
+                end
+                pending = false;
+            end
+        with
+            every SDL_REDRAW do
+                var int x = (aabb.center.x - aabb.half_size.x) as int;
+                var int y = (aabb.center.y - aabb.half_size.y) as int;
+                var int w = (aabb.half_size.x * 2) as int;
+                var int h = (aabb.half_size.y * 2) as int;
+
+                var SDL_Rect rect = val SDL_Rect(x, y, w, h);
+                _SDL_SetRenderDrawColor(&&ren, 0x2D, 0x51, 0x71, 0xFF);
+                _SDL_RenderDrawRect(&&ren, &&rect as _SDL_Rect&&);
+            end
+        with
+            spawn do
+                var int dt;
+                every dt in SDL_DT do
+                    var real speed_x = speed.x * dt/1000;
+                    var real speed_y = speed.y * dt/1000;
+                    position.x = (position.x + speed_x) as int;
+                    position.y = (position.y + speed_y) as int;
+
+                    if current_life == 0 then
+                        emit destroy_player;
+                    end
+                end
+            end
+            loop do
+                var int anim;
+                var u8&& key_state = _SDL_GetKeyboardState(null);
+
+                if key_state[_SDL_SCANCODE_A] != key_state[_SDL_SCANCODE_D] then 
+                    if key_state[_SDL_SCANCODE_A] == 1 then
+                        speed.x = -foward_speed;
+                        anim    = 2;
+                    else
+                        speed.x = foward_speed;
+                        anim     = 1;
+                    end
+                else
+                    speed.x = normal_speed;
+                    anim     = 0;
+                end
+                if key_state[_SDL_SCANCODE_W] != key_state[_SDL_SCANCODE_S] then
+                    if key_state[_SDL_SCANCODE_S] == 1 then
+                        speed.y = flying_speed;
+                        anim    = 4;
+                    else
+                        speed.y = -flying_speed;
+                        anim     = 3;
+                    end
+                else
+                    speed.y = gravity;
+                end
+
+                emit e_anim(anim);       
+                par/or do
+                    var _SDL_KeyboardEvent&& key = await SDL_KEYDOWN until (key:keysym.sym == _SDLK_a 
+                                                                            or key:keysym.sym == _SDLK_d
+                                                                            or key:keysym.sym == _SDLK_s
+                                                                            or key:keysym.sym == _SDLK_w);
+                with
+                    var _SDL_KeyboardEvent&& key = await SDL_KEYUP until (key:keysym.sym == _SDLK_a 
+                                                                        or key:keysym.sym == _SDLK_d
+                                                                        or key:keysym.sym == _SDLK_s
+                                                                        or key:keysym.sym == _SDLK_w);
+                end
+            end
+        end
+    with
+        await destroy_player;
+    end
+end
