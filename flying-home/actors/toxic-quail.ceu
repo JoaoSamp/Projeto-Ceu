@@ -1,0 +1,94 @@
+data IActor.IToxic_Quail with
+	var& IActor target;
+end
+
+code/call Create_Toxic_Quail (var IVector start_pos, var& IMap imap, var& IActor target) -> IActor.IToxic_Quail
+do
+    var IVector size            = val IVector(16, 16);
+    var IMoving_Obj imov_obj     = call Create_Moving_Obj( start_pos, size);
+
+    var IActor.IToxic_Quail itxc_quail = val IActor.IToxic_Quail ( imov_obj, &imap, 15, 15, 0, 0, _, _, _, _, &target );
+    escape itxc_quail;
+end
+
+code/await Psn_Bomb (var IVector position, var IVector bomb_speed, var& IMap imap) -> none
+do
+	var IActor.IPoison_Bomb ip_bomb = call Create_Poison_Bomb (position, bomb_speed, &imap );
+	var&? Actor p_bomb = spawn Actor(&ip_bomb) in imap.all_actors;
+	await p_bomb;
+end
+
+code/await Toxic_Quail ( var& IActor.IToxic_Quail itxc_quail ) -> none
+do
+    
+    var IVector sprite_size      = val IVector(48, 48);
+    var IVector sprite_offset    = val IVector(24, 24);
+    var& SDL_Open_Image img_idle       = spawn SDL_Open_Image(&outer.renderer, "assets/img/actors/smallSqr.png");
+
+    var IImage_Quad iq_idle    = val IImage_Quad( &img_idle,     sprite_size, _ );
+
+    var IAnimation ianim_idle      = val IAnimation( iq_idle,       sprite_offset, 1 );
+
+    pool[] Psn_Bomb bombs;
+    par do
+        var int dt;
+        every dt in SDL_DT do
+        end
+    with
+    	loop do
+            await Animation (&ianim_idle, &itxc_quail.imov_obj.aabb.center, &itxc_quail.imov_obj.aabb.scale, &itxc_quail.imov_obj.aabb.rotate_angle );
+    	end
+    with
+    	par/or do
+    		loop do
+    			var int i;
+    			loop i in [1 -> 2] do
+    				var IVector new_position = val IVector (0, 0);
+					if itxc_quail.target.imov_obj.aabb.center.x < (outer.camera_size.x / 2) then
+						new_position.x = (_rand()%((outer.camera_size.x as int) / 4)) + outer.camera_size.x - (outer.camera_size.x / 2);
+					else
+						new_position.x = (_rand()%( (outer.camera_size.x as int) / 2) );
+					end
+					new_position.y = (_rand()%(outer.camera_size.y as int) / 2) + ((outer.camera_size.y / 4) as int);
+					new_position.x = new_position.x - itxc_quail.imov_obj.aabb.center.x;
+					new_position.y = new_position.y - itxc_quail.imov_obj.aabb.center.y;
+					var real angle = _atan2(new_position.x, new_position.y);
+					var real x_speed = ((_rand()%(50*i)) + 50) * _sin(angle);
+					var real y_speed = ((_rand()%(50*i)) + 50) * _cos(angle);
+					itxc_quail.imov_obj.speed = val IVector (x_speed, y_speed);
+		    		await 1s;
+	    			itxc_quail.imov_obj.speed = val IVector (0, 0);
+	    			await 200ms;
+		    	end
+	    		itxc_quail.imov_obj.speed = val IVector (0, 0);
+	    		var real bomb_x_speed = -100;
+	    		if itxc_quail.target.imov_obj.aabb.center.x - itxc_quail.imov_obj.aabb.center.x > 0 then
+	    			bomb_x_speed = -bomb_x_speed;
+	    			if itxc_quail.imov_obj.aabb.scale.x > 0 then
+	    				itxc_quail.imov_obj.aabb.scale.x = itxc_quail.imov_obj.aabb.scale.x * (-1);
+	    			end
+	    		else
+	    			if itxc_quail.imov_obj.aabb.scale.x < 0 then
+	    				itxc_quail.imov_obj.aabb.scale.x = itxc_quail.imov_obj.aabb.scale.x * (-1);
+	    			end
+	    		end
+	    		await 500ms;
+	    		var IVector bomb_speed = val IVector (bomb_x_speed - 50, -140 );
+	    		spawn Psn_Bomb (itxc_quail.imov_obj.aabb.center, bomb_speed, &itxc_quail.imap) in bombs;
+	    		await 200ms;
+	    		bomb_speed = val IVector (bomb_x_speed, -120 );
+	    		spawn Psn_Bomb (itxc_quail.imov_obj.aabb.center, bomb_speed, &itxc_quail.imap) in bombs;
+	    		await 1s;
+			end
+    	with
+    		await itxc_quail.hit;
+    	end
+    end
+end
+
+code/await/dynamic Actor ( var&/dynamic IActor.IToxic_Quail iact )
+    -> ( var IActor.IToxic_Quail iactor = iact )
+         -> none
+do
+    await Toxic_Quail (&iactor);
+end

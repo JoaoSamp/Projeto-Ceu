@@ -1,0 +1,120 @@
+data IActor.IPlayer;
+
+code/call Create_Player (var IVector start_pos ) -> IActor.IPlayer
+do
+    var IVector size            = val IVector(10, 12);
+    var IMoving_Obj imov_obj     = call Create_Moving_Obj( start_pos, size);
+
+    var IActor.IPlayer iplayer = val IActor.IPlayer ( imov_obj, _ );
+    escape iplayer;
+end
+
+code/await Player( var& IActor.IPlayer iplayer ) -> none
+do
+    event int e_change_animation;
+    event none e_interrupt_animation;
+
+    var real accel_x = 200;
+    var real accel_y = 200;
+
+    var& IMoving_Obj imov_obj          = &iplayer.imov_obj;
+    var& IAABBox iaabb              = &imov_obj.aabb;
+    var IAnimation ianim_glide      = val IAnimation( "assets/imgs/walker-glide.bmp",       10, 1, &iaabb.center, &iaabb.scale, &iaabb.rotate_angle );
+    var IAnimation ianim_flying     = val IAnimation( "assets/imgs/walker-flying.bmp",      10, 8, &iaabb.center, &iaabb.scale, &iaabb.rotate_angle );
+    var IAnimation ianim_dive       = val IAnimation( "assets/imgs/walker-dive.bmp",        10, 1, &iaabb.center, &iaabb.scale, &iaabb.rotate_angle );
+    var IAnimation ianim_foward     = val IAnimation( "assets/imgs/walker-foward.bmp",      10, 1, &iaabb.center, &iaabb.scale, &iaabb.rotate_angle );
+    var IAnimation ianim_backward   = val IAnimation( "assets/imgs/walker-backward.bmp",    10, 1, &iaabb.center, &iaabb.scale, &iaabb.rotate_angle );
+
+    par do 
+        var int new_anim = 0;
+        var bool pending = false;
+        par do
+            every new_anim in e_change_animation do
+                pending = true;
+            end
+        with
+            loop do
+                var& IAnimation current_ianim;
+                if new_anim == 1 then
+                    current_ianim = &ianim_foward;
+                else/if new_anim == 2 then
+                    current_ianim = &ianim_backward;
+                else/if new_anim == 3 then
+                    current_ianim = &ianim_flying;
+                else/if new_anim == 4 then
+                    current_ianim = &ianim_dive;
+                else 
+                    current_ianim = &ianim_glide;
+                end
+                par/or do
+                    loop do
+                        await Animation ( &current_ianim );
+                        if pending then
+                            break;
+                        end
+                    end
+                with
+                    await e_interrupt_animation;
+                end
+                pending = false;
+            end
+        end
+    with
+        par do
+            var int dt;
+            every dt in FRAMES_UPDATE do
+                call Update_Physics(&imov_obj, dt);
+            end
+        with
+            loop do
+                var int new_anim;
+                var u8&& key_state = _SDL_GetKeyboardState(null);
+
+                if key_state[_SDL_SCANCODE_A] != key_state[_SDL_SCANCODE_D] then 
+                    if key_state[_SDL_SCANCODE_A] == 1 then
+                        imov_obj.acceleration.x = -accel_x;
+                        new_anim     = 2;
+                    else
+                        imov_obj.acceleration.x = accel_x;
+                        new_anim     = 1;
+                    end
+                else
+                    imov_obj.acceleration.x = 0;
+                    new_anim     = 0;
+                end
+
+                if key_state[_SDL_SCANCODE_W] != key_state[_SDL_SCANCODE_S] then
+                    if key_state[_SDL_SCANCODE_S] == 1 then
+                        imov_obj.acceleration.y = -accel_y;
+                        new_anim     = 4;
+                    else
+                        imov_obj.acceleration.y = accel_y;
+                        new_anim     = 3;
+                    end
+                else
+                    imov_obj.acceleration.y = outer.gravity;
+                end
+
+                emit e_change_animation(new_anim);       
+                par/or do
+                    var int key = await KEY_PRESS until (key == KEY_a 
+                                                        or key == KEY_d
+                                                        or key == KEY_s
+                                                        or key == KEY_w);
+                with
+                    var int key = await KEY_UNPRESS until (key == KEY_a 
+                                                        or key == KEY_d
+                                                        or key == KEY_s
+                                                        or key == KEY_w);
+                end
+            end
+        end
+    end
+end
+
+code/await/dynamic Actor ( var&/dynamic IActor.IPlayer iact )
+    -> ( var IActor.IPlayer iactor = iact )
+         -> none
+do
+    await Player (&iactor);
+end

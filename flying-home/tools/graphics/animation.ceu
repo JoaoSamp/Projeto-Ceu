@@ -1,0 +1,26 @@
+data IAnimation with
+    var IImage_Quad quad;
+    var IVector offset;
+    var int fps;
+end
+
+code/call Draw_Animation (var& IAnimation ianimation, var& IVector position, var& IVector scale, var& real rotate_angle) -> none
+do
+    call Draw( &ianimation.quad, position.x, position.y, scale.x, scale.y, ianimation.offset.x, ianimation.offset.y, rotate_angle );
+end
+
+code/await Animation ( var& IAnimation ianim, var& IVector position, var& IVector scale, var& real rotate_angle ) ->
+                        ( var& IAnimation ianimation = &ianim ) -> none
+do
+    par/or do
+        every (1000/ianimation.fps)ms do
+            if call Next_Frame( &ianimation.quad ) == false then
+                break;
+            end
+        end
+    with
+        every SDL_REDRAW do
+            call Draw_Animation( &ianimation, &position, &scale, &rotate_angle );
+        end
+    end
+end

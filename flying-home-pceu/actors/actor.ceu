@@ -1,0 +1,21 @@
+data IActor with
+    var IMoving_Obj imov_obj;
+    event none hit;
+end
+
+code/call Create_Actor (var IMoving_Obj imov_obj) -> IActor
+do
+    var IActor iactor = val IActor( imov_obj, _ );
+    escape iactor;
+end
+
+code/await/dynamic Actor ( var&/dynamic IActor iact )
+    -> ( var IActor iactor = iact ) -> none
+do
+
+end
+
+code/await/dynamic Hit_Actor (var&/dynamic IActor hitman, var&/dynamic IActor hitted) -> none
+do
+
+end

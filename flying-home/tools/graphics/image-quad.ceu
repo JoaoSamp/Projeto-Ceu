@@ -1,0 +1,26 @@
+data IImage_Quad with
+	var& SDL_Open_Image img;
+	var IVector size;
+    var IVector position = val IVector (0, 0);
+end
+
+code/call Next_Frame ( var& IImage_Quad iquad ) -> bool
+do
+    iquad.position.x = iquad.position.x + iquad.size.x;
+    if iquad.position.x >= iquad.img.tex.width then
+        iquad.position.x = 0;
+        iquad.position.y = iquad.position.y + iquad.size.y;
+        if iquad.position.y >= iquad.img.tex.height then
+            iquad.position.y = 0;
+            escape false;
+        end
+    end
+    escape true;
+end
+
+code/await Quad_Cycle ( var& IImage_Quad iquad, var int fps ) -> NEVER
+do
+    every (1000/fps)ms do
+        call Next_Frame( &iquad );
+    end
+end

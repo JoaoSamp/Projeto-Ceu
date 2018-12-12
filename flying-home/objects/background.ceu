@@ -1,0 +1,95 @@
+data IBackground with
+    var& IImage_Quad quad;
+    var IVector position = val IVector(0,0);
+    var IVector scale = val IVector(1,1);
+    var IVector offset = val IVector(0,0);
+    var IVector speed;
+    var real rotate_angle = 0;
+end
+
+code/call Create_Background (var& IImage_Quad quad, var IVector speed) -> IBackground
+do
+	var IBackground ibg = val IBackground(&quad, _, _, _, speed, _);
+	escape ibg;
+end
+
+code/await Background_Image ( var IBackground ibackground ) -> none
+do
+	par/or do
+		every SDL_REDRAW do
+    		call Draw( &ibackground.quad, ibackground.position.x, ibackground.position.y, ibackground.scale.x, ibackground.scale.y, ibackground.offset.x, ibackground.offset.y, ibackground.rotate_angle );
+		end
+	with
+        var int dt;
+        every dt in SDL_DT do
+		    var real speed_x = ibackground.speed.x * dt/1000;
+		    var real speed_y = ibackground.speed.y * dt/1000;
+
+		    ibackground.position.x = (ibackground.position.x + speed_x);
+		    ibackground.position.y = (ibackground.position.y + speed_y);
+		    if ibackground.position.x < -(ibackground.quad.size.x * ibackground.scale.x)  then
+		    	break;
+		    end
+        end
+	end
+end
+
+code/await Background_Color ( var int r, var int g, var int b, var int a ) -> NEVER
+do
+	every SDL_REDRAW do
+		var int x = outer.draw_offset.x as int;
+		var int y = outer.draw_offset.y as int;
+		var int w = (outer.camera_scale.x * outer.camera_tile_size * outer.draw_scale.x) as int;
+		var int h = (outer.camera_scale.y * outer.camera_tile_size * outer.draw_scale.y) as int;
+		var SDL_Rect bg_rect = val SDL_Rect (x, y, w, h);
+		_SDL_SetRenderDrawColor(&&outer.renderer, r, g, b, a);
+		_SDL_RenderFillRect(&&outer.renderer, &&bg_rect as _SDL_Rect&&);
+	end
+end
+
+code/await Create_Border ( var IVector size, var IVector speed, var IVector scale, var& SDL_Open_Image border_img ) -> NEVER
+do
+	pool[] Background_Image borders;
+    var IVector position 			= val IVector (0,0);
+    var IImage_Quad iq_top_border 	= val IImage_Quad ( &border_img, size, _ );
+    var IVector quad_position 		= val IVector ( 0, size.y);
+    var IImage_Quad iq_bot_border 	= val IImage_Quad ( &border_img, size, quad_position );
+
+	var real rotate_angle = 0;
+    var IVector offset          = val IVector ( size.x / 2, size.y / 2);
+    var IBackground top_border  = val IBackground ( &iq_top_border, position, scale, offset, speed, rotate_angle );
+    var IBackground bot_border  = val IBackground ( &iq_bot_border, position, scale, offset, speed, rotate_angle );
+
+    var IVector border_position 	= val IVector (0 ,0);
+	var IVector bot_position        = val IVector ( (outer.camera_scale.x * outer.camera_tile_size) + size.x,  (outer.camera_scale.y * outer.camera_tile_size) - size.y / 2);
+    var IVector top_position        = val IVector ( (outer.camera_scale.x * outer.camera_tile_size) + size.x, size.y / 2);
+
+    par do
+    	var int dt;
+	    every dt in SDL_DT do
+		    var real speed_x = speed.x * dt/1000;
+		    var real speed_y = speed.y * dt/1000;
+
+		   	border_position.x = border_position.x + speed_x;
+		   	if border_position.x < -size.x then
+		   		border_position.x = border_position.x + size.x;
+		   		var IVector top_new_position = val IVector (top_position.x + border_position.x, top_position.y);
+		   		var IVector bot_new_position = val IVector (bot_position.x + border_position.x, bot_position.y);
+		   		top_border.position = top_new_position;
+		   		bot_border.position = bot_new_position;
+		   		spawn Background_Image (top_border) in borders;
+		   		spawn Background_Image (bot_border) in borders;
+		   	end
+		end
+	with
+		var int i;
+		loop i in [0 -> (outer.camera_scale.x + 1) as int] do
+	   		var IVector top_new_position = val IVector (i * outer.camera_tile_size + ( size.x / 2 ), top_position.y);
+	   		var IVector bot_new_position = val IVector (i * outer.camera_tile_size + ( size.x / 2 ), bot_position.y);
+	   		top_border.position = top_new_position;
+	   		bot_border.position = bot_new_position;
+	   		spawn Background_Image (top_border) in borders;
+	   		spawn Background_Image (bot_border) in borders;
+		end
+	end
+end

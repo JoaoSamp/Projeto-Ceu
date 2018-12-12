@@ -1,24 +1,61 @@
 #include "c.ceu"
 #include "sdl/sdl.ceu"
-#include "objects/vector.ceu"
-#include "objects/aabb.ceu"
-#include "tools/draw-tools.ceu"
-#include "tools/animation.ceu"
-#include "chars/walker/player.ceu"
-#include "tools/hud.ceu"
-#include "levels/blue_sky/level.ceu"
 
-var SDL_Color bg = val SDL_Color(65,225,225,0);
+native/pure 
+	_fabs,
+	_atan2
+;
 
-
+var SDL_Color bg = val SDL_Color(255,128,128,0);
 var&? SDL_Init sdl = spawn SDL_Init("Flying Home - Basic Character", 1024, 576, bg);
+
 watching sdl do
+	var& _SDL_Renderer renderer = &sdl.ren;
+	#include "includes.ceu"
+	#include "tools/enviroment.ceu"
+
+	// data only objects
+	#include "objects/vector.ceu"
+	#include "objects/aabb.ceu"
+	#include "objects/moving-obj.ceu"
+
+	// tools for drawing
+	#include "tools/graphics/image-quad.ceu"
+	#include "tools/graphics/graphics.ceu"
+	#include "tools/graphics/animation.ceu"
+
+	// display objects
+	#include "objects/background.ceu"
+
+	// scenes structures
+	#include "objects/scene/tile.ceu"
+	#include "actors/actor.ceu"
+	#include "objects/scene/map.ceu"
+
+	// actors
+	#include "actors/player.ceu"
+
+	// hud
+	#include "hud/player-status.ceu"
+
+	//scenes and tiles
+	#include "scenes/blue_sky/cloud.ceu"
+	#include "scenes/blue_sky/poison-cloud.ceu"
+	#include "actors/poison-bomb.ceu"
+	#include "actors/toxic-quail.ceu"
+	#include "actors/cannon-ball.ceu"
+	#include "actors/vulture.ceu"
+	#include "actors/duck-ranger.ceu"
+	#include "actors/duck-leader.ceu"
+	#include "scenes/blue_sky/ring.ceu"
+	#include "tools/physics.ceu"
+	#include "scenes/blue_sky/blue-sky.ceu"
+
+
+	//call _SDL_SetWindowFullscreen( &&sdl.win as _SDL_Window&&, _SDL_WINDOW_FULLSCREEN_DESKTOP );
+	call Set_Camera();
 	loop do
-		var Vector position = val Vector(100, 100);
-	    var&? Player plr = spawn Player (position, &sdl.ren);
-	    spawn Blue_Sky(&plr!, &sdl.ren);
-		spawn Hud(&plr, &sdl.ren);
-		await plr;
+	    await Blue_Sky( );
 	end
 
     await FOREVER;

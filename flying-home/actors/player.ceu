@@ -1,0 +1,206 @@
+data IActor.IPlayer with
+    var real side_speed;
+    var real up_speed;
+    var real down_speed;
+    var real current_side_speed;
+    var real current_up_speed;
+    var real current_down_speed;
+end
+
+var real acceleration = 400;
+var real max_speed = 120;
+var real min_speed = 10;
+var real normal_speed = 80;
+
+code/call Create_Player (var IVector start_pos, var& IMap imap, var int max_life, var int max_mana ) -> IActor.IPlayer
+do
+    var IVector size            = val IVector(10, 12);
+    var IMoving_Obj imov_obj     = call Create_Moving_Obj( start_pos, size);
+
+    var IActor.IPlayer iplayer = val IActor.IPlayer ( imov_obj, &imap, max_life, max_life, max_mana, max_mana, _, _, _, _,
+        outer.normal_speed, outer.normal_speed, outer.normal_speed, outer.normal_speed, outer.normal_speed, outer.normal_speed );
+    escape iplayer;
+end
+
+code/call Change_Speed (var real value, var& real speed, var& real current_speed) -> none
+do
+    current_speed = current_speed + value;
+    if current_speed < outer.min_speed then
+        speed = outer.min_speed;
+    else/if current_speed > outer.max_speed then
+        speed = outer.max_speed;
+    else
+        speed = current_speed;
+    end
+end
+
+code/await Speed_Status (var real value, var& real speed, var& real current_speed, var int time) -> none
+do
+    call Change_Speed ( value, &speed, &current_speed);
+    await (time)ms;
+    call Change_Speed ( -value, &speed, &current_speed);
+end
+
+code/await All_Speed_Effect ( var real value, var int time, var& IActor.IPlayer iplayer) -> none
+do
+    spawn Speed_Status(value, &iplayer.side_speed, &iplayer.current_side_speed, time);
+    spawn Speed_Status(value, &iplayer.up_speed, &iplayer.current_up_speed, time);
+    spawn Speed_Status(value, &iplayer.down_speed, &iplayer.current_down_speed, time);
+    await (time)ms;
+end
+
+code/await Player( var& IActor.IPlayer iplayer ) -> none
+do
+    event int e_change_animation;
+    event none e_interrupt_animation;
+    event bool e_stop_movement;
+    
+    var IVector sprite_size      = val IVector(32, 32);
+    var IVector sprite_offset    = val IVector(15, 18);
+
+    var& SDL_Open_Image img_glide       = spawn SDL_Open_Image(&outer.renderer, "assets/img/actors/walker-glide.png");
+    var& SDL_Open_Image img_foward      = spawn SDL_Open_Image(&outer.renderer, "assets/img/actors/walker-foward.png");
+    var& SDL_Open_Image img_backward    = spawn SDL_Open_Image(&outer.renderer, "assets/img/actors/walker-backward.png");
+    var& SDL_Open_Image img_flying      = spawn SDL_Open_Image(&outer.renderer, "assets/img/actors/walker-fly.png");
+    var& SDL_Open_Image img_dive        = spawn SDL_Open_Image(&outer.renderer, "assets/img/actors/walker-dive.png");
+    var& SDL_Open_Image img_hit         = spawn SDL_Open_Image(&outer.renderer, "assets/img/actors/walker-hit.png");
+    var& SDL_Open_Image img_dead        = spawn SDL_Open_Image(&outer.renderer, "assets/img/actors/walker-dead.png");
+
+    var IImage_Quad iq_glide    = val IImage_Quad( &img_glide,     sprite_size, _ );
+    var IImage_Quad iq_foward   = val IImage_Quad( &img_foward,    sprite_size, _ );
+    var IImage_Quad iq_backward = val IImage_Quad( &img_backward,  sprite_size, _ );
+    var IImage_Quad iq_flying   = val IImage_Quad( &img_flying,    sprite_size, _ );
+    var IImage_Quad iq_dive     = val IImage_Quad( &img_dive,      sprite_size, _ );
+    var IImage_Quad iq_hit      = val IImage_Quad( &img_hit,      sprite_size, _ );
+    var IImage_Quad iq_dead     = val IImage_Quad( &img_dead,      sprite_size, _ );
+
+    var IAnimation ianim_glide      = val IAnimation( iq_glide,       sprite_offset, 10 );
+    var IAnimation ianim_foward     = val IAnimation( iq_foward,      sprite_offset, 10 );
+    var IAnimation ianim_backward   = val IAnimation( iq_backward,    sprite_offset, 10 );
+    var IAnimation ianim_flying     = val IAnimation( iq_flying,      sprite_offset, 8 );
+    var IAnimation ianim_dive       = val IAnimation( iq_dive,        sprite_offset, 10 );
+    var IAnimation ianim_hit        = val IAnimation( iq_hit,        sprite_offset, 2 );
+    var IAnimation ianim_dead       = val IAnimation( iq_dead,        sprite_offset, 10 );
+
+    spawn Status_Effect (&iplayer);
+    par/or do
+        par do 
+            var int new_anim = 0;
+            var bool pending = false;
+            spawn do
+                every new_anim in e_change_animation do
+                    pending = true;
+                end
+            end
+            loop do
+                var& IAnimation current_ianim;
+                if new_anim == 1 then
+                    current_ianim = &ianim_foward;
+                else/if new_anim == 2 then
+                    current_ianim = &ianim_backward;
+                else/if new_anim == 3 then
+                    current_ianim = &ianim_flying;
+                else/if new_anim == 4 then
+                    current_ianim = &ianim_dive;
+                else/if new_anim == 5 then
+                    current_ianim = &ianim_hit;
+                else 
+                    current_ianim = &ianim_glide;
+                end
+                par/or do
+                    loop do
+                        await Animation (&current_ianim, &iplayer.imov_obj.aabb.center, &iplayer.imov_obj.aabb.scale, &iplayer.imov_obj.aabb.rotate_angle );
+                        if pending then
+                            break;
+                        end
+                    end
+                with
+                    await e_interrupt_animation;
+                end
+                pending = false;
+            end
+        with
+            par do
+                var int dt;
+                every dt in SDL_DT do
+                
+                end
+            with
+                par do
+                    pause/if e_stop_movement do
+                        loop do
+                            var int new_anim;
+                            var u8&& key_state = _SDL_GetKeyboardState(null);
+
+                            if key_state[_SDL_SCANCODE_A] != key_state[_SDL_SCANCODE_D] then 
+                                if key_state[_SDL_SCANCODE_A] == 1 then
+                                    iplayer.imov_obj.acceleration.x = -outer.acceleration;
+                                    iplayer.imov_obj.aabb.scale.x   = iplayer.imov_obj.aabb.scale.x;
+                                    new_anim    = 2;
+                                else
+                                    iplayer.imov_obj.acceleration.x = outer.acceleration;
+                                    new_anim     = 1;
+                                end
+                            else
+                                iplayer.imov_obj.acceleration.x = 0;
+                                new_anim     = 0;
+                            end
+                            if key_state[_SDL_SCANCODE_W] != key_state[_SDL_SCANCODE_S] then
+                                if key_state[_SDL_SCANCODE_S] == 1 then
+                                    iplayer.imov_obj.acceleration.y = outer.acceleration;
+                                    new_anim    = 4;
+                                else
+                                    iplayer.imov_obj.acceleration.y = -outer.acceleration;
+                                    new_anim     = 3;
+                                end
+                            else
+                                iplayer.imov_obj.acceleration.y = outer.gravity;
+                            end
+
+                            emit e_change_animation(new_anim);       
+                            par/or do
+                                var _SDL_KeyboardEvent&& key = await SDL_KEYDOWN until (key:keysym.sym == _SDLK_a 
+                                                                                        or key:keysym.sym == _SDLK_d
+                                                                                        or key:keysym.sym == _SDLK_s
+                                                                                        or key:keysym.sym == _SDLK_w);
+                            with
+                                var _SDL_KeyboardEvent&& key = await SDL_KEYUP until (key:keysym.sym == _SDLK_a 
+                                                                                    or key:keysym.sym == _SDLK_d
+                                                                                    or key:keysym.sym == _SDLK_s
+                                                                                    or key:keysym.sym == _SDLK_w);
+                            with
+                                await resume;
+                            end
+                        end
+                    end
+                with
+                    loop do
+                        await iplayer.hit;
+                        if iplayer.current_life <= 0 then
+                            emit iplayer.destroy;
+                        end
+                    end
+                with
+                    loop do
+                        var int stun_time = await iplayer.stun;
+                        iplayer.imov_obj.speed = val IVector(0, 0);
+                        emit e_stop_movement(true);
+                        emit e_change_animation(5);
+                        emit e_interrupt_animation;
+                        await (stun_time)ms;
+                        emit e_stop_movement(false);
+                    end
+                end
+            end
+        end
+    with
+        await iplayer.destroy;
+    end
+end
+
+code/await/dynamic Actor ( var&/dynamic IActor.IPlayer iact )
+    -> ( var IActor.IPlayer iactor = iact )
+         -> none
+do
+    await Player (&iactor);
+end

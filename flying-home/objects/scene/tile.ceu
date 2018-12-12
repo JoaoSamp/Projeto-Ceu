@@ -1,0 +1,50 @@
+data ITile with
+	var IMoving_Obj imov_obj;
+
+	var IVector sprite_offset;
+	var& IImage_Quad iq_idle;
+	var IAnimation ianim_destroy;
+
+	var IVector speed = val IVector (0, 0);
+	event bool invisible;
+	event none destroy;
+	event none hit;
+end
+
+code/call Update_Speed (var& ITile tile, var IVector speed) -> none
+do
+	tile.imov_obj.speed.x = speed.x + tile.speed.x;
+	tile.imov_obj.speed.y = speed.y + tile.speed.y;
+end
+
+code/await Common_Tile (var& ITile itile) -> none
+do
+	par/and do
+		par/or do
+			pause/if itile.invisible do
+				every SDL_REDRAW do
+		    		call Draw( &itile.iq_idle, itile.imov_obj.aabb.center.x, itile.imov_obj.aabb.center.y, itile.imov_obj.aabb.scale.x, itile.imov_obj.aabb.scale.x, itile.sprite_offset.x, itile.sprite_offset.y, itile.imov_obj.aabb.rotate_angle);
+		    	end
+		    end
+	    with
+	    	await itile.hit;
+	    	itile.imov_obj.destroyed = true;
+	    end
+	    await Animation (&itile.ianim_destroy, &itile.imov_obj.aabb.center, &itile.imov_obj.aabb.scale, &itile.imov_obj.aabb.rotate_angle);
+	with
+        var int dt;
+        every dt in SDL_DT do
+            call Update_Position (&itile.imov_obj, dt);
+            if (itile.imov_obj.aabb.center.x) < -(itile.iq_idle.size.x) then
+            	break;
+            end
+        end
+    with
+    	await itile.destroy;
+	end
+end
+
+code/await/dynamic Tile (var&/dynamic ITile t) -> (var ITile itile = t) -> none
+do
+	//_ceu_assert(0, "erro");
+end

@@ -1,0 +1,19 @@
+emit WINDOW_SET_TITLE("Flying Home - Basic Character");
+emit WINDOW_SET_SIZE(1024, 576, 1024, 576);
+emit WINDOW_SET_CLEAR_COLOR_RGB(128,205,225);
+emit FRAMES_SET(yes);
+
+#include "objects/vector.ceu"
+#include "objects/aabb.ceu"
+#include "objects/moving-obj.ceu"
+
+#include "tools/enviroment.ceu"
+#include "tools/graphics/camera.ceu"
+#include "tools/graphics/animation.ceu"
+#include "actors/actor.ceu"
+#include "actors/player.ceu"
+
+var IVector position = val IVector (0, 0);
+var IActor.IPlayer ipl = call Create_Player ( position );
+spawn/dynamic Actor (&ipl);
+await FOREVER;

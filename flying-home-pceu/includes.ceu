@@ -1,0 +1,9 @@
+data IVector;
+data IAABBox;
+data IMoving_Obj;
+data IImage_Quad;
+data IAnimation;
+data IBackground;
+data IMap;
+data IActor;
+data IActor.IPlayer;

@@ -1,0 +1,26 @@
+data IAnimation with
+	var text image_name;
+	var int fps;
+	var int frames;
+	var& IVector position;
+	var& IVector scale;
+	var& real rotate_angle;
+end
+
+code/await Animation ( var& IAnimation ianim ) -> none
+do
+	var int i = 0;
+	par/or do
+		every (1000/ianim.fps)ms do
+			i = i+1;
+			if i == ianim.frames then
+				break;
+			end
+		end
+	with
+		every FRAMES_REDRAW do
+			emit GRAPHICS_SET_BMP_FRAME ( i, ianim.frames );
+			call Draw_Image ( ianim.image_name, ianim.position, ianim.scale, ianim.rotate_angle );
+		end
+	end
+end

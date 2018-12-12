@@ -1,0 +1,51 @@
+emit WINDOW_SET_TITLE("Flying Home - Basic Character");
+emit WINDOW_SET_SIZE(1024, 576, 1024, 576);
+emit WINDOW_SET_CLEAR_COLOR_RGB(128,205,225);
+emit FRAMES_SET(yes);
+
+
+emit GRAPHICS_SET_SCALE(2,2);
+par do
+	var int i = 0;
+	var int fps = 12;
+	every (1000/fps)ms do
+		emit GRAPHICS_SET_BMP_FRAME(i, 8);
+		i = i+1;
+		if i == 8 then
+			i = 0;
+		end
+	end
+with
+	every FRAMES_REDRAW do
+		emit GRAPHICS_SET_SCALE(2,2);
+		emit GRAPHICS_SET_FLIP(FLIP_HORIZONTAL);
+		emit GRAPHICS_DRAW_BMP(0, 100, "assets/imgs/walker-flying.bmp");
+		emit GRAPHICS_SET_FLIP(FLIP_NONE);
+		emit GRAPHICS_DRAW_BMP(100, 100, "assets/imgs/walker-flying.bmp");
+		emit GRAPHICS_SET_FLIP(FLIP_VERTICAL);
+		emit GRAPHICS_DRAW_BMP(100, 0, "assets/imgs/walker-flying.bmp");
+		emit GRAPHICS_SET_FLIP(FLIP_BOTH);
+		emit GRAPHICS_DRAW_BMP(0, 0, "assets/imgs/walker-flying.bmp");
+
+		emit GRAPHICS_SET_ROTATION(45);
+		emit GRAPHICS_SET_SCALE(2,2);
+		emit GRAPHICS_SET_FLIP(FLIP_HORIZONTAL);
+		emit GRAPHICS_DRAW_TEXT(0, 100, "assets");
+		emit GRAPHICS_SET_FLIP(FLIP_NONE);
+		emit GRAPHICS_DRAW_TEXT(100, 100, "assets");
+		emit GRAPHICS_SET_FLIP(FLIP_VERTICAL);
+		emit GRAPHICS_DRAW_TEXT(100, 0, "assets");
+		emit GRAPHICS_SET_FLIP(FLIP_BOTH);
+		emit GRAPHICS_DRAW_TEXT(0, 0, "assets");
+		
+		emit GRAPHICS_SET_FLIP(FLIP_HORIZONTAL);
+		emit GRAPHICS_SET_WRITE_CURSOR(10, 10);
+		emit GRAPHICS_WRITELN("OK OK");
+
+		emit GRAPHICS_SET_SCALE(2,2);
+		emit GRAPHICS_SET_FLIP(FLIP_HORIZONTAL);
+
+		emit GRAPHICS_DRAW_LINE(0, 0, 10, 35);
+	end
+end
+

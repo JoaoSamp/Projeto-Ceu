@@ -1,0 +1,42 @@
+var IVector sprite_sizep_p_cloud			= val IVector (32, 32);
+var& SDL_Open_Image img_idle_p_cloud 		= spawn SDL_Open_Image(&renderer, "assets/img/tiles/poisonCloud-idle.png");
+var& SDL_Open_Image img_destroy_p_cloud 	= spawn SDL_Open_Image(&renderer, "assets/img/tiles/poisonCloud-destroy.png");
+var IImage_Quad idle_quad_p_cloud		= val IImage_Quad( &img_idle_p_cloud, sprite_sizep_p_cloud, _ );
+
+data ITile.IPoison_Cloud;
+
+code/call Create_Poison_Cloud ( var IVector start_pos, var IVector speed) -> ITile.IPoison_Cloud
+do
+	var IVector size 			= val IVector (26, 26);
+	var IVector sprite_size		= val IVector (32, 32);
+	var IVector sprite_offset	= val IVector (16, 16);
+    var IMoving_Obj imov_obj     = call Create_Moving_Obj( start_pos, size);
+
+	var IImage_Quad iq_destroy		= val IImage_Quad( &outer.img_destroy_p_cloud, outer.sprite_sizep_p_cloud, _ );
+    var IAnimation ianim_destroy    = val IAnimation( iq_destroy, sprite_offset, 12 );
+
+    imov_obj.speed 				= speed;
+    var ITile.IPoison_Cloud tile 		= val ITile.IPoison_Cloud ( imov_obj, sprite_offset, &outer.idle_quad_p_cloud, ianim_destroy, _, _, _, _);
+    escape tile;
+end
+
+code/await Poison_Cloud(var& ITile.IPoison_Cloud itile) -> none
+do
+	await Common_Tile (&itile);
+end
+
+code/await/dynamic Tile (var&/dynamic ITile.IPoison_Cloud t) -> (var ITile.IPoison_Cloud itile = t) -> none
+do
+	await Poison_Cloud (&itile);
+end
+
+code/await/dynamic Hit_Tile (var&/dynamic IActor.IPlayer iactor, var&/dynamic ITile.IPoison_Cloud itile) -> none
+do
+	var real value = -(_rand()%5 + 5);
+	call Change_Life (value, &iactor);
+	emit iactor.poison_hit;
+	emit iactor.hit;
+	emit iactor.stun(150);
+	emit itile.hit;
+	emit itile.destroy;
+end
