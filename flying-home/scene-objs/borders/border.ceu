@@ -1,0 +1,46 @@
+code/await Create_Border ( var IVector size, var IVector speed, var IVector scale, var& SDL_Open_Image border_img ) -> NEVER
+do
+	pool[] Background_Image borders;
+    var IVector position 			= val IVector (0,0);
+    var IImage_Quad iq_top_border 	= val IImage_Quad ( &border_img, size, _ );
+    var IVector quad_position 		= val IVector ( 0, size.y);
+    var IImage_Quad iq_bot_border 	= val IImage_Quad ( &border_img, size, quad_position );
+
+	var real rotate_angle = 0;
+    var IVector offset          = val IVector ( size.x / 2, size.y / 2);
+    var IBackground top_border  = val IBackground ( &iq_top_border, position, scale, offset, speed, rotate_angle );
+    var IBackground bot_border  = val IBackground ( &iq_bot_border, position, scale, offset, speed, rotate_angle );
+
+    var IVector border_position 	= val IVector (0 ,0);
+	var IVector bot_position        = val IVector ( (outer.camera_scale.x * outer.camera_tile_size) + size.x,  (outer.camera_scale.y * outer.camera_tile_size) - size.y / 2);
+    var IVector top_position        = val IVector ( (outer.camera_scale.x * outer.camera_tile_size) + size.x, size.y / 2);
+
+    par do
+		var int i;
+		loop i in [0 -> (outer.camera_scale.x + 1) as int] do
+	   		var IVector top_new_position = val IVector (i * outer.camera_tile_size + ( size.x / 2 ), top_position.y);
+	   		var IVector bot_new_position = val IVector (i * outer.camera_tile_size + ( size.x / 2 ), bot_position.y);
+	   		top_border.position = top_new_position;
+	   		bot_border.position = bot_new_position;
+	   		spawn Background_Image (top_border) in borders;
+	   		spawn Background_Image (bot_border) in borders;
+		end
+	with
+    	var int dt;
+	    every dt in SDL_DT do
+		    var real speed_x = speed.x * dt/1000;
+		    var real speed_y = speed.y * dt/1000;
+
+		   	border_position.x = border_position.x + speed_x;
+		   	if border_position.x < -size.x then
+		   		border_position.x = border_position.x + size.x;
+		   		var IVector top_new_position = val IVector (top_position.x + border_position.x, top_position.y);
+		   		var IVector bot_new_position = val IVector (bot_position.x + border_position.x, bot_position.y);
+		   		top_border.position = top_new_position;
+		   		bot_border.position = bot_new_position;
+		   		spawn Background_Image (top_border) in borders;
+		   		spawn Background_Image (bot_border) in borders;
+		   	end
+		end
+	end
+end

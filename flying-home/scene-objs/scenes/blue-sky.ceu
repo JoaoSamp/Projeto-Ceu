@@ -1,44 +1,3 @@
-code/await Create_Cloud_Border (none) -> NEVER
-do
-    var& SDL_Open_Image img_cloud_border    = spawn SDL_Open_Image(&outer.renderer, "assets/img/borders/cloud-border.png");
-    var IVector size    = val IVector ( 32, 16 );
-    var IVector speed   = val IVector ( -100, 0 );
-    var IVector scale   = val IVector ( 1, 1 );
-    await Create_Border (size, speed, scale, &img_cloud_border);
-end
-
-code/await New_Tile (var int index, var IVector tile_position, var& IMap imap) -> none
-do
-    var&? Tile tile;
-    if imap.tile_map[index] == 2 then
-        var ITile.IRing ring = call Create_Ring(tile_position, imap.speed);
-        tile = spawn/dynamic Tile(&ring) in imap.all_tiles;
-    else/if imap.tile_map[index] == 3 then
-        var ITile.IPoison_Cloud p_cloud = call Create_Poison_Cloud(tile_position, imap.speed);
-        tile = spawn/dynamic Tile(&p_cloud) in imap.all_tiles;
-    else
-        var ITile.ICloud cloud = call Create_Cloud(tile_position, imap.speed);
-        tile = spawn/dynamic Tile(&cloud) in imap.all_tiles;
-    end
-    await tile;
-end
-
-code/await New_Actor( var int index, var IVector postion, var& IMap imap, var& IActor target) -> none
-do
-    var&? Actor actor;
-    if index == 1 then
-        var IActor.IVulture ivult = call Create_Vulture (postion, &imap, &target);
-        actor = spawn/dynamic Actor (&ivult) in imap.all_actors;
-    else/if index == 2 then
-        var IActor.IDuck_Ranger iranger = call Create_Duck_Ranger (postion, &imap, &target);
-        actor = spawn/dynamic Actor (&iranger) in imap.all_actors;
-    else
-        var IActor.IToxic_Quail itxc_quail = call Create_Toxic_Quail (postion, &imap, &target);
-        actor = spawn/dynamic Actor (&itxc_quail) in imap.all_actors;
-    end
-    await actor;
-end
-
 code/await Blue_Sky (none) -> (var IMap imap) -> none
 do
     event int create_column;
@@ -52,17 +11,8 @@ do
     0,  0,  0,  0,  0,  0,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  1,  0,  0,  1,  2,  2,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  0,  0,  1,  1,  1,  1,  1,  0,  0,  0,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
     ];
-
-    var IVector bg_size = val IVector (505, 200);
-    var IVector bg_speed = val IVector (-15, 0);
-    var& SDL_Open_Image bg_img        = spawn SDL_Open_Image(&outer.renderer, "assets/img/background/sky.png");
-    var IImage_Quad bg_iquad    = val IImage_Quad( &bg_img,     bg_size, _ );
-    var IBackground ibg_sky = call Create_Background( &bg_iquad, bg_speed);
-    ibg_sky.scale = val IVector (1.5, 1.5);
-
     spawn Background_Color (65,225,225,0);
-    pool[] Background_Image layer_1;
-    pool[] Background_Image layer_2;
+    spawn Blue_Sky_BG();
 
     pool[] New_Actor new_actors;
     pool[] Actor all_actors;
@@ -83,57 +33,32 @@ do
 
     var& Map map = spawn Map( &imap );
 
-    spawn Create_Cloud_Border ();
+    spawn Cloud_Border();
     spawn Camera_Border ();
 
     spawn Quad_Cycle(&outer.idle_quad_cloud, 2);
     spawn Quad_Cycle(&outer.idle_quad_p_cloud, 2);
     spawn Quad_Cycle(&outer.idle_quad_ring, 10);
 
-
-
+    var int dt;
     var int column = 0;
-    par do
-        loop do
-            ibg_sky.position.x = 0;
-            spawn Background_Image (ibg_sky) in layer_1;
-            ibg_sky.scale.y = ibg_sky.scale.y * -1;
-            ibg_sky.position.x = bg_size.x * ibg_sky.scale.x;
-            var&? Background_Image bg_sky = spawn Background_Image (ibg_sky) in layer_1;
-            ibg_sky.scale.y = ibg_sky.scale.y * -1;
-            ibg_sky.position.x = ibg_sky.position.x + (bg_size.x * ibg_sky.scale.x);
-            spawn Background_Image (ibg_sky) in layer_1;
-            await bg_sky;
-        end
-    with
-        var int dt;
-        every dt in SDL_DT do
-            var int new_column = (imap.position.x as int) / (imap.tile_size.x as int);
-            if -new_column != column then
-                emit create_column(column);
-                column = -new_column;
-            end
-            var&? Actor actor;
-            loop actor in all_actors do
-                call Update_Physics(&actor!.iactor as IActor, dt);
-
-            end
-        end
-    with
-        var int x;
-        every x in create_column do
-            if x < imap.size.x then
+    every dt in SDL_DT do
+        var int new_column = -(imap.position.x as int) / (imap.tile_size.x as int);
+        if new_column != column then
+            if column < imap.size.x then
                 var int j;
                 loop j in [0 -> (imap.size.y - 1) as int] do
-                    var int index = x + (j * (imap.size.x as int)) ;
-                    var IVector tile_position = call Get_Pos_By_Index_Pos ( &imap, x, j );
+                    var int index = column + (j * (imap.size.x as int));
+                    var IVector tile_position = call Get_Pos_By_Index_Pos ( &imap, column, j );
                     tile_position.x = tile_position.x + (outer.camera_scale.x * outer.camera_tile_size) + outer.camera_tile_size;
                     if imap.tile_map[index] != 0 then
                         spawn New_Tile (index, tile_position, &imap) in new_tiles;
                     end
                 end
-                
+            else
+                break;
             end
+            column = new_column;
         end
     end
 end

@@ -21,16 +21,21 @@ watching sdl do
 
 	// tools for drawing
 	#include "tools/graphics/image-quad.ceu"
-	#include "tools/graphics/graphics.ceu"
+	#include "tools/graphics/camera.ceu"
 	#include "tools/graphics/animation.ceu"
 
-	// display objects
-	#include "objects/background.ceu"
+	// backgrounds
+	#include "scene-objs/backgrounds/background.ceu"
+	#include "scene-objs/backgrounds/blue-sky-bg.ceu"
 
-	// scenes structures
-	#include "objects/scene/tile.ceu"
+	// borders
+	#include "scene-objs/borders/border.ceu"
+	#include "scene-objs/borders/cloud_border.ceu"
+
+	// 
+	#include "scene-objs/tiles/tile.ceu"
 	#include "actors/actor.ceu"
-	#include "objects/scene/map.ceu"
+	#include "scene-objs/map.ceu"
 
 	// actors
 	#include "actors/player.ceu"
@@ -39,17 +44,20 @@ watching sdl do
 	#include "hud/player-status.ceu"
 
 	//scenes and tiles
-	#include "scenes/blue_sky/cloud.ceu"
-	#include "scenes/blue_sky/poison-cloud.ceu"
+	#include "scene-objs/tiles/cloud.ceu"
+	#include "scene-objs/tiles/poison-cloud.ceu"
+	#include "scene-objs/tiles/ring.ceu"
+
 	#include "actors/poison-bomb.ceu"
 	#include "actors/toxic-quail.ceu"
 	#include "actors/cannon-ball.ceu"
 	#include "actors/vulture.ceu"
 	#include "actors/duck-ranger.ceu"
 	#include "actors/duck-leader.ceu"
-	#include "scenes/blue_sky/ring.ceu"
-	#include "tools/physics.ceu"
-	#include "scenes/blue_sky/blue-sky.ceu"
+
+	#include "scene-objs/scenes/creator_index.ceu"
+
+	#include "scene-objs/scenes/blue-sky.ceu"
 
 
 	//call _SDL_SetWindowFullscreen( &&sdl.win as _SDL_Window&&, _SDL_WINDOW_FULLSCREEN_DESKTOP );

@@ -32,8 +32,5 @@ end
 
 code/await/dynamic Hit_Tile (var&/dynamic IActor.IPlayer iactor, var&/dynamic ITile.ICloud itile) -> none
 do
-	emit iactor.hit;
-	emit itile.hit;
-	await All_Speed_Effect (-20, 3000, &iactor);
-	emit itile.destroy;
+
 end

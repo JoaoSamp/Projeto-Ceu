@@ -32,11 +32,5 @@ end
 
 code/await/dynamic Hit_Tile (var&/dynamic IActor.IPlayer iactor, var&/dynamic ITile.IPoison_Cloud itile) -> none
 do
-	var real value = -(_rand()%5 + 5);
-	call Change_Life (value, &iactor);
-	emit iactor.poison_hit;
-	emit iactor.hit;
-	emit iactor.stun(150);
-	emit itile.hit;
-	emit itile.destroy;
+
 end

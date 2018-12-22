@@ -31,6 +31,24 @@ do
 	escape imov_obj;	
 end
 
+code/call Update_Speed (var& IMoving_Obj imov_obj, var int dt) -> none
+do
+	imov_obj.speed.x = (imov_obj.speed.x + (imov_obj.acceleration.x * dt/1000)) * 0.9;
+	imov_obj.speed.y = (imov_obj.speed.y + (imov_obj.acceleration.y * dt/1000)) * 0.9;
+
+	if imov_obj.speed.x > imov_obj.max_speed.x then
+		imov_obj.speed.x = imov_obj.max_speed.x;
+	else/if imov_obj.speed.x < -imov_obj.max_speed.x then
+		imov_obj.speed.x = -imov_obj.max_speed.x;
+	end
+
+	if imov_obj.speed.y > imov_obj.max_speed.y then
+		imov_obj.speed.y = imov_obj.max_speed.y;
+	else/if imov_obj.speed.y < -imov_obj.max_speed.y then
+		imov_obj.speed.y = -imov_obj.max_speed.y;
+	end
+end
+
 code/call Update_Position (var& IMoving_Obj imov_obj, var int dt) -> none
 do
     var real speed_x = imov_obj.speed.x * dt/1000;

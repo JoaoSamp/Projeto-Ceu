@@ -91,5 +91,5 @@ end
 
 code/await/dynamic Hit_Actor (var&/dynamic IActor.IPoison_Bomb hitman, var&/dynamic IActor.IPlayer hitted) -> none
 do
-    emit hitman.hit;
+
 end

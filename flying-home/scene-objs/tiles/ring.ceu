@@ -32,8 +32,5 @@ end
 
 code/await/dynamic Hit_Tile (var&/dynamic IActor.IPlayer iactor, var&/dynamic ITile.IRing itile) -> none
 do
-	emit iactor.hit;
-	emit itile.hit;
-	call Change_Mana (10, &iactor);
-	emit itile.destroy;
+
 end

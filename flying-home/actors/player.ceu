@@ -22,33 +22,6 @@ do
     escape iplayer;
 end
 
-code/call Change_Speed (var real value, var& real speed, var& real current_speed) -> none
-do
-    current_speed = current_speed + value;
-    if current_speed < outer.min_speed then
-        speed = outer.min_speed;
-    else/if current_speed > outer.max_speed then
-        speed = outer.max_speed;
-    else
-        speed = current_speed;
-    end
-end
-
-code/await Speed_Status (var real value, var& real speed, var& real current_speed, var int time) -> none
-do
-    call Change_Speed ( value, &speed, &current_speed);
-    await (time)ms;
-    call Change_Speed ( -value, &speed, &current_speed);
-end
-
-code/await All_Speed_Effect ( var real value, var int time, var& IActor.IPlayer iplayer) -> none
-do
-    spawn Speed_Status(value, &iplayer.side_speed, &iplayer.current_side_speed, time);
-    spawn Speed_Status(value, &iplayer.up_speed, &iplayer.current_up_speed, time);
-    spawn Speed_Status(value, &iplayer.down_speed, &iplayer.current_down_speed, time);
-    await (time)ms;
-end
-
 code/await Player( var& IActor.IPlayer iplayer ) -> none
 do
     event int e_change_animation;
@@ -123,7 +96,8 @@ do
             par do
                 var int dt;
                 every dt in SDL_DT do
-                
+                    call Update_Speed(&iplayer.imov_obj, dt);
+                    call Update_Position(&iplayer.imov_obj, dt);
                 end
             with
                 par do

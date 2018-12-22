@@ -11,7 +11,7 @@ data ITile with
 	event none hit;
 end
 
-code/call Update_Speed (var& ITile tile, var IVector speed) -> none
+code/call Change_Tile_Speed (var& ITile tile, var IVector speed) -> none
 do
 	tile.imov_obj.speed.x = speed.x + tile.speed.x;
 	tile.imov_obj.speed.y = speed.y + tile.speed.y;

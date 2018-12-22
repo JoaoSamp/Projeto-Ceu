@@ -1,0 +1,8 @@
+code/await Cloud_Border (none) -> NEVER
+do
+    var& SDL_Open_Image img_cloud_border    = spawn SDL_Open_Image(&outer.renderer, "assets/img/borders/cloud-border.png");
+    var IVector size    = val IVector ( 32, 16 );
+    var IVector speed   = val IVector ( -100, 0 );
+    var IVector scale   = val IVector ( 1, 1 );
+    await Create_Border (size, speed, scale, &img_cloud_border);
+end
