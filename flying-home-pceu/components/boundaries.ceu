@@ -1,0 +1,12 @@
+data IBoundaries with
+	var bool bound_top		= true;
+	var bool bound_bottom	= true;
+	var bool bound_left 	= true;
+	var bool bound_right	= true;
+end
+
+code/call Create_Unbound(none) -> IBoundaries
+do
+	var IBoundaries boundaries = val IBoundaries (false, false, false, false);
+	escape boundaries;
+end

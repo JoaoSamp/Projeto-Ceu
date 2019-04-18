@@ -1,19 +1,76 @@
+native/const  
+	_M_PI
+;
+native/pure 
+	_fabs,
+	_atan2,
+	_floor
+;
+
 emit WINDOW_SET_TITLE("Flying Home - Basic Character");
 emit WINDOW_SET_SIZE(1024, 576, 1024, 576);
 emit WINDOW_SET_CLEAR_COLOR_RGB(128,205,225);
 emit FRAMES_SET(yes);
 
-#include "objects/vector.ceu"
-#include "objects/aabb.ceu"
-#include "objects/moving-obj.ceu"
+	#include "includes.ceu"
+	#include "tools/enviroment.ceu"
 
-#include "tools/enviroment.ceu"
-#include "tools/graphics/camera.ceu"
-#include "tools/graphics/animation.ceu"
-#include "actors/actor.ceu"
-#include "actors/player.ceu"
+	// data only objects
+	#include "objects/vector.ceu"
+	
+	// components
+	#include "components/body-type.ceu"
+	#include "components/boundaries.ceu"
+	#include "components/kinematic-steering.ceu"
 
-var IVector position = val IVector (0, 0);
-var IActor.IPlayer ipl = call Create_Player ( position );
-spawn/dynamic Actor (&ipl);
+	// data only objects
+	#include "objects/aabb.ceu"
+	#include "objects/moving-obj.ceu"
+
+	// tools for drawing
+	#include "tools/graphics/image-quad.ceu"
+	#include "tools/graphics/camera.ceu"
+	#include "tools/graphics/animation.ceu"
+
+	// map, tiles, actors, backgrounds base
+	#include "scene-objs/map.ceu"
+	#include "actors/actor.ceu"
+	#include "scene-objs/tiles/tile.ceu"
+	#include "scene-objs/backgrounds/background.ceu"
+	#include "scene-objs/borders/border.ceu"
+
+	// post actor components
+	#include "components/status.ceu"
+	#include "components/behaviors.ceu"
+
+	// backgrounds
+	#include "scene-objs/backgrounds/blue-sky-bg.ceu"
+
+	//#include "hud/open-animation.ceu"
+
+	// borders
+	#include "scene-objs/borders/cloud-border.ceu"
+	
+	// actors derivations
+	#include "actors/enemie.ceu"
+	#include "actors/brat.ceu"
+	//#include "actors/player-attacks.ceu"
+	#include "actors/player.ceu"
+
+	// hud
+	//#include "hud/player-status.ceu"
+
+	//scenes and tiles
+	#include "scene-objs/tiles/cloud.ceu"
+	#include "scene-objs/tiles/ring.ceu"
+
+	#include "tools/physics.ceu"
+	#include "scene-objs/scenes/blue-sky.ceu"
+	//#include "game-world/world-pin.ceu"
+	//#include "game-world/world-map.ceu"
+	//#include "game-world/game-world.ceu"
+
+loop do 
+	await Blue_Sky_Scene();
+end
 await FOREVER;

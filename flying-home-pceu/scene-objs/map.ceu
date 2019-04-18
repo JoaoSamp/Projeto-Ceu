@@ -1,0 +1,69 @@
+data IMap with
+    var IVector position;
+    var IVector size;
+    var IVector tile_size;
+    var IVector velocity;
+    var&[] int tile_map;
+end
+
+code/call Get_Index_By_Pos (var& IMap imap, var IVector position) -> int
+do
+    var int x = _floor(position.x / imap.tile_size.x) as int;
+    var int y = _floor(imap.size.y - (position.y / imap.tile_size.y)) as int;
+    escape (x + (y * imap.size.x)) as int;
+end
+
+code/call Get_Index_By_Relative_Pos (var& IMap imap, var IVector position) -> int
+do
+    var int x = _floor((position.x - imap.position.x) / imap.tile_size.x) as int;
+    var int y = _floor(imap.size.y - ((position.y - imap.position.y) / imap.tile_size.y)) as int;
+    escape (x + (y * imap.size.x)) as int;
+end
+
+code/call Get_Pos_By_Index (var& IMap imap, var int ind ) -> IVector
+do
+    var int x           = ind % (imap.size.x as int);
+    var int y           = ((ind - x) / imap.size.x) as int;
+    var IVector position = val IVector((x * imap.tile_size.x) + imap.position.x + (imap.tile_size.x/2), ((imap.size.y - y) * imap.tile_size.y) + imap.position.y -(imap.tile_size.y/2));
+    escape position;
+end
+
+code/call Get_Pos_By_Index_Pos (var& IMap imap, var int x, var int y ) -> IVector
+do
+    var IVector position = val IVector((x * imap.tile_size.x) + imap.position.x + (imap.tile_size.x/2), ((imap.size.y - y) * imap.tile_size.y) - imap.position.y + (imap.tile_size.y/2));
+    escape position;
+end
+
+code/call Get_X_Index_By_X_Pos (var& IMap imap, var real pos_x) -> int
+do
+    var real x = pos_x / imap.tile_size.x;
+    escape (x as int);
+end
+
+code/call Get_Map_Y_Boundaries (var& IMap imap) -> IVector
+do
+    var IVector boundaries = val IVector (imap.position.y + (imap.size.y * imap.tile_size.y), imap.position.y );
+    escape boundaries;
+end
+
+code/call Get_Map_X_Boundaries (var& IMap imap) -> IVector
+do
+    var IVector boundaries = val IVector (imap.position.x, imap.position.x + (imap.size.x * imap.tile_size.x));
+    escape boundaries;
+end
+
+code/await Map ( var& IMap imap )
+            -> ( var& IMap blue_sky = &imap )
+                -> none
+do
+    var int dt;
+    every dt in FRAMES_UPDATE do
+        var real speed_x = ((imap.velocity.x * dt)/1000);
+        var real speed_y = ((imap.velocity.y * dt)/1000);
+        imap.position.x = imap.position.x + (speed_x);
+        imap.position.y = imap.position.y + (speed_y);
+        if _fabs(imap.position.x) > (imap.size.x * imap.tile_size.x) then
+            break;
+        end
+    end
+end 

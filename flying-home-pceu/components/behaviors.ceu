@@ -1,0 +1,16 @@
+code/await Seek_Behavior ( var& IMoving_Obj imov_obj, var& IVector target) -> NEVER 
+do
+	every FRAMES_UPDATE do
+		imov_obj.isteering = call Steering_Seek( imov_obj.ikinematic, target);
+	end
+end
+
+code/await Arrive_Behavior ( var& IMoving_Obj imov_obj, var& IVector target, var real target_radius, var real slow_radius) -> none 
+do
+	every FRAMES_UPDATE do
+		imov_obj.isteering = call Steering_Arrive( imov_obj.ikinematic, target, target_radius, slow_radius);
+		if call VLength(imov_obj.isteering.linear) == 0 then
+			break;
+		end
+	end
+end

@@ -1,26 +1,25 @@
 data IAnimation with
-	var text image_name;
+	var IImage_Quad iquad;
 	var int fps;
-	var int frames;
-	var& IVector position;
-	var& IVector scale;
-	var& real rotate_angle;
 end
 
-code/await Animation ( var& IAnimation ianim ) -> none
+code/call Draw_Animation (var& IImage_Quad iquad, var& IVector position, var& IVector scale, var& real rotate_angle) -> none
 do
-	var int i = 0;
+    call Draw_Image( &iquad, position.x, position.y, scale.x, scale.y, iquad.offset.x, iquad.offset.y, rotate_angle );
+end
+
+code/await Animation ( var& IAnimation ianimation, var& IVector position, var& IVector scale, var& real rotate_angle ) -> none
+do
+	var IImage_Quad iquad = ianimation.iquad;
 	par/or do
-		every (1000/ianim.fps)ms do
-			i = i+1;
-			if i == ianim.frames then
-				break;
-			end
+		every (1000/ianimation.fps)ms do
+            if call Next_Frame( &iquad ) == false then
+                break;
+            end
 		end
 	with
 		every FRAMES_REDRAW do
-			emit GRAPHICS_SET_BMP_FRAME ( i, ianim.frames );
-			call Draw_Image ( ianim.image_name, ianim.position, ianim.scale, ianim.rotate_angle );
+			call Draw_Animation ( &iquad, &position, &scale, &rotate_angle  );
 		end
 	end
 end

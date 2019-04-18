@@ -1,0 +1,67 @@
+data ITile_Manager.IRing;
+
+code/call Create_Ring_Data (var& IMap imap, var int id) -> ITile_Manager.IRing
+do
+	var IVector size = val IVector (10, 22);
+	var ITile_Manager.IRing iring = val ITile_Manager.IRing (&imap, BType.Nonsolid(), size, id, _, _);
+	escape iring;	
+end
+
+code/await Ring_Destroy (var& IVector map_speed, var IVector start_position ) -> none
+do
+	var IVector offset 		= val IVector( 16, 16 );
+    var IAnimation ianim_destroy  	= val IAnimation( call Create_Image_Quad( "assets/img/tiles/smallRing-destroy.bmp", offset, 9 ), 12);
+    
+    var IVector position 	= start_position;
+    var IVector scale 		= val IVector( 1, 1 );
+    var real rotate_angle 	= 0;
+	par/or do
+		var int dt;
+		every dt in FRAMES_UPDATE do
+		    var real speed_x = map_speed.x * dt/1000;
+		    var real speed_y = map_speed.y * dt/1000;
+
+		    position.x = position.x + speed_x;
+		    position.y = position.y + speed_y;
+		end
+	with
+		await Animation (&ianim_destroy, &position, &scale, &rotate_angle );
+	end
+end
+
+code/await Ring (var& ITile_Manager.IRing itile ) -> NEVER
+do
+	var IVector offset	= val IVector (16, 16);
+	var IImage_Quad iquad	= call Create_Image_Quad( "assets/img/tiles/smallRing-idle.bmp", offset, 6 );
+    spawn Quad_Cycle(&iquad, 12);
+    pool[] Ring_Destroy destroy_pool;
+
+    par do
+		every FRAMES_REDRAW do
+			call Tiles_Draw (&itile, &iquad);
+		end
+	with
+		var int index;
+		every index in itile.collision do
+			itile.imap.tile_map[index] = 0;
+			var IVector start_position = call Get_Pos_By_Index( &itile.imap, index );
+			spawn Ring_Destroy (&itile.imap.velocity, start_position) in destroy_pool;
+		end
+	end
+end
+
+
+code/await/dynamic Tile (var&/dynamic ITile_Manager.IRing itile ) -> NEVER
+do
+	await Ring (&itile);
+end
+
+code/call/dynamic Tile_Hit (var&/dynamic IActor.IPlayer iactor, var&/dynamic ITile_Manager.IRing itile, var int index) -> ITile_Collision
+do
+	var ITile_Collision it_collision = val ITile_Collision( false, 0);
+	it_collision.collision = call Tile_Collision_Check(&itile, &iactor.imov_obj, index );
+	if it_collision.collision then
+		it_collision.collision = true;
+	end
+	escape it_collision;
+end

@@ -1,0 +1,34 @@
+code/await Blue_Sky_BG (var& IMap imap) -> NEVER
+do
+    // Create the background's quad 
+    var IVector bg_size         = val IVector (512, 288);
+    var IVector offset          = call VMultSca(bg_size, 0.5);
+    var IVector scale           = val IVector (0.75, 0.75);
+    var IImage_Quad iquad       = call Create_Image_Quad("assets/img/background/sky-bg.bmp", offset, 1);
+    
+    // Create a background data with quad(image) and speed 
+    var IVector bg_speed = val IVector (45, 0);
+
+    var IBackground ibg_sky_one = call Create_Background( &iquad, bg_size, &imap.velocity, bg_speed);
+    ibg_sky_one.position        = outer.camera.position;
+    ibg_sky_one.scale           = scale;
+
+    var IBackground ibg_sky_two = ibg_sky_one;
+    ibg_sky_two.scale.y         = ibg_sky_two.scale.y * -1;
+    ibg_sky_two.position.x      = outer.camera.position.x + _fabs(bg_size.x * ibg_sky_two.scale.x) - 1;
+
+    spawn Background_Color( 65, 225, 225, 255);
+    par do
+        loop do
+            var&? Background_Image bg = spawn Background_Image (&ibg_sky_one);
+            await bg;
+            ibg_sky_one.position.x = ibg_sky_one.position.x + ( _fabs(bg_size.x * ibg_sky_one.scale.x) * 2 ) - 2;
+        end
+    with
+        loop do
+            var&? Background_Image bg   = spawn Background_Image (&ibg_sky_two);
+            await bg;
+            ibg_sky_two.position.x = ibg_sky_two.position.x + ( _fabs(bg_size.x * ibg_sky_two.scale.x) * 2 ) - 2;
+        end
+    end
+end

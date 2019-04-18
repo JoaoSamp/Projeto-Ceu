@@ -1,34 +1,100 @@
 data ICamera with
-	var IVector position;
-	var IVector scale;
+	var IVector position 	= val IVector (0, 0);
+	var IVector scale 		= val IVector (1, 1);
+	var IVector size 		= val IVector (1, 1);
 end
-var IVector camera_position = val IVector (0, 0);
-var IVector camera_scale 	= val IVector (2, 2);
-var ICamera global_camera = val ICamera (camera_position, camera_scale);
 
-code/call Draw_Image(var text image_name, var IVector position, var IVector scale, var real rotate_angle ) -> none
+var ICamera camera 	= val ICamera ( _, _, _ );
+
+code/call Draw_Image(var& IImage_Quad iquad, var real x, var real y, var real sx, var real sy, var real ox, var real oy, var real rotate_angle) -> none
 do
-	if scale.x < 0 and scale.y < 0 then
+
+	if sx < 0 and sy < 0 then
 		emit GRAPHICS_SET_FLIP(FLIP_BOTH);
-	else/if scale.x < 0 then
+	else/if sx < 0 then
 		emit GRAPHICS_SET_FLIP(FLIP_HORIZONTAL);
-	else/if scale.y < 0 then
+	else/if sy < 0 then
 		emit GRAPHICS_SET_FLIP(FLIP_VERTICAL);
 	else
 		emit GRAPHICS_SET_FLIP(FLIP_NONE);
 	end
+	emit GRAPHICS_SET_ANCHOR (HANCHOR_LEFT, VANCHOR_TOP);
 
-	scale.x = _abs(scale.x);
-	scale.y = _abs(scale.y);
 
-	position.x 	= position.x * outer.global_camera.scale.x;
-	position.y 	= position.y * outer.global_camera.scale.y;
-	position.x 	= position.x - outer.global_camera.position.x;
-	position.y 	= position.y - outer.global_camera.position.y;
-	scale.x 	= scale.x * outer.global_camera.scale.x;
-	scale.y 	= scale.y * outer.global_camera.scale.y;
+	sx = _fabs(sx);
+	sy = _fabs(sy);
+	x = x - (ox * sx);
+	y = y + (oy * sy);
+	
+	x = x - outer.camera.position.x;
+	y = y - outer.camera.position.y;
+	x = x * outer.camera.scale.x;
+	y = y * outer.camera.scale.y;
+	sx = sx * outer.camera.scale.x;
+	sy = sy * outer.camera.scale.y;
 
-	emit GRAPHICS_SET_SCALE ( scale.x, scale.y );
+	emit GRAPHICS_SET_BMP_FRAME ( iquad.draw_frame, iquad.frames );
+	emit GRAPHICS_SET_SCALE ( sx, sy );
 	emit GRAPHICS_SET_ROTATION ( rotate_angle );
-	emit GRAPHICS_DRAW_BMP ( position.x as int, position.y as int, &&image_name[0] as text );
+	emit GRAPHICS_SET_COLOR_NAME(iquad.color);
+	emit GRAPHICS_DRAW_BMP ( x as int, y as int, &&iquad.image_name[0] as text );
+end
+
+code/call Camera_Set_Scale_By_Size(var IVector size) -> none
+do
+	var int w = 0;
+	var int h = 0;
+	call _SDL_GetWindowSize( &&outer.sdl.win as _SDL_Window&&, &&w, &&h );
+	var IVector scale = val IVector ( w / size.x, h / size.y );
+	outer.camera.scale = scale;
+end
+
+code/call Camera_Set_Position (var IVector position) -> none
+do
+	outer.camera.position = position;
+end
+
+code/call Camera_Get_Size (none) -> IVector
+do
+	var int w = 0;
+	var int h = 0;
+	call _SDL_GetWindowSize( &&outer.sdl.win as _SDL_Window&&, &&w, &&h );
+	var IVector size = val IVector (w, h);
+	size = val IVector (size.x / outer.camera.scale.x, size.y / outer.camera.scale.y);
+	escape size;
+end
+
+code/call Camera_Get_Position (none) -> IVector
+do
+	escape outer.camera.position;
+end
+
+code/call Camera_Get_Boundaries_Y(none) -> IVector
+do
+	var IVector camera_size 	= call Camera_Get_Size ();
+	var IVector camera_position = call Camera_Get_Position ();
+	var IVector result = val IVector (camera_position.y + (camera_size.y / 2), camera_position.y - (camera_size.y / 2));
+	escape result;
+end
+
+code/call Camera_Get_Boundaries_X(none) -> IVector
+do
+	var IVector camera_size 	= call Camera_Get_Size ();
+	var IVector camera_position = call Camera_Get_Position ();
+	var IVector result = val IVector (camera_position.x - (camera_size.x / 2), camera_position.x + (camera_size.x / 2));
+	escape result;
+end
+
+code/call On_Screen(var IVector position, var IVector size) -> bool
+do
+	var IVector half_size = call VMultSca(size, 0.5);
+	var IVector camera_half_size = call VMultSca(call Camera_Get_Size(), 0.5);
+
+	if _fabs( position.x - outer.camera.position.x ) > half_size.x + camera_half_size.x  then
+		escape false;
+	end
+	if _fabs( position.y - outer.camera.position.y ) > half_size.y + camera_half_size.y  then
+		escape false;
+	end
+	escape true;
 end

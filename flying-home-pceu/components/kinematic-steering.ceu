@@ -1,0 +1,60 @@
+data IKinematic_Component with
+	var IVector position 		= val IVector ( 0, 0 );
+	var IVector old_position 	= val IVector ( 0, 0 );
+	var IVector acceleration	= val IVector ( 0, 0 );
+	var real orientation 	= 0;
+	var IVector velocity 	= val IVector ( 0, 0 );
+	var real rotation 		= 0;
+	var real drag			= 0.75;
+end
+
+data ISteering_Component with
+	var IVector linear = val IVector (0, 0);
+	var real angular = 0;
+end
+
+code/call Create_Kinematic_Component ( var IVector position ) -> IKinematic_Component
+do
+	var IKinematic_Component ikinematic = val IKinematic_Component (position, position, _, _, _, _, _);
+	escape ikinematic;
+end
+
+code/call Kinematic_Update (var& IKinematic_Component ikinematic, var ISteering_Component isteering, var real dt) -> none
+do
+	ikinematic.old_position = ikinematic.position;
+	ikinematic.position = call VAdd(ikinematic.position, call VMultSca(ikinematic.velocity, dt/1000.0));
+
+	ikinematic.velocity = call VAdd(ikinematic.velocity, call VMultSca(isteering.linear, dt/1000.0));
+	ikinematic.velocity = call VMultSca(ikinematic.velocity, ikinematic.drag);
+end
+
+
+code/call Steering_Seek( var IKinematic_Component character, var IVector target ) -> ISteering_Component
+do
+	var ISteering_Component isteering = val ISteering_Component(_, _);
+
+	isteering.linear = call VSub( target, character.position );
+	isteering.linear = call VNormalize(isteering.linear);
+	isteering.linear = call VMultVec(isteering.linear, character.acceleration);
+	escape isteering;
+end
+
+code/call Steering_Arrive ( var IKinematic_Component character, var IVector target,  
+							var real target_radius, var real slow_radius ) -> ISteering_Component
+do
+	var ISteering_Component isteering = val ISteering_Component(_, _);
+	var IVector direction 	= call VSub( target, character.position );
+	var real distance 		= call VLength( direction );
+	if distance < target_radius then
+		escape isteering;
+	end
+	var IVector target_acceleration = val IVector (_, _);
+	if distance > slow_radius then
+		target_acceleration = character.acceleration;
+	else 
+		target_acceleration = call VMultSca(character.acceleration, (distance / slow_radius));
+	end
+
+	isteering.linear = call VMultVec( target_acceleration, call VNormalize( direction ));
+	escape isteering;
+end

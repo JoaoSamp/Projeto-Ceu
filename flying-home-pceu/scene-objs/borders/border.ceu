@@ -1,0 +1,40 @@
+data IBorder with
+	var& IMap imap;
+	var IImage_Quad iquad;
+    var IVector position;
+	var IVector size;
+	var IVector scale;
+	var IVector velocity;
+end
+
+code/await Border (var& IBorder iborder) -> NEVER
+do
+    var IVector camera_size = call Camera_Get_Size();
+    var IVector camera_bounds_x = call Camera_Get_Boundaries_X();
+    var IVector draw_position   = val IVector (0,0);
+    var IVector border_position = val IVector (camera_bounds_x.x,0);
+    var real rotate_angle = 0;
+
+    par do
+        every FRAMES_REDRAW do
+            var IVector camera_size = call Camera_Get_Size();
+            emit GRAPHICS_SET_BMP_FRAME ( iborder.iquad.draw_frame, iborder.iquad.frames );
+            var int i;
+            loop i in [0 -> ((camera_size.x / iborder.size.x) + 1) as int] do
+                iborder.position.x = (i * iborder.size.x ) + border_position.x - i;
+                call Draw_Image( &iborder.iquad, iborder.position.x, iborder.position.y, iborder.scale.x, iborder.scale.y, iborder.iquad.offset.x, iborder.iquad.offset.y, 0);
+            end
+        end
+    with
+        var int dt;
+        every dt in FRAMES_UPDATE do
+            var real velocity_x 	= (iborder.imap.velocity.x + iborder.velocity.x) * dt/1000;
+            border_position.x 		= border_position.x + velocity_x;
+
+            var IVector camera_bounds_x = call Camera_Get_Boundaries_X();            
+            if border_position.x < camera_bounds_x.x - iborder.size.x then
+                border_position.x = camera_bounds_x.x;
+            end
+        end
+    end
+end

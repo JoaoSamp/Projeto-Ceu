@@ -3,26 +3,64 @@ data IVector with
 	var real y;
 end
 
-code/call Vec_Add( var IVector vec_a, var IVector vec_b ) -> IVector
+var IVector null_vector = val IVector (0, 0);
+
+code/call VAdd( var IVector vec_a, var IVector vec_b ) -> IVector
 do
 	var IVector vec = val IVector(vec_a.x + vec_b.x, vec_a.y + vec_b.y);
 	escape vec;
 end
 
-code/call Vec_Sub( var IVector vec_a, var IVector vec_b ) -> IVector
+code/call VSub( var IVector vec_a, var IVector vec_b ) -> IVector
 do
 	var IVector vec = val IVector(vec_a.x - vec_b.x, vec_a.y - vec_b.y);
 	escape vec;
 end
 
-code/call Vec_ScaMult( var IVector vec_a, var int sca ) -> IVector
+code/call VMultSca( var IVector vec_a, var real sca ) -> IVector
 do
 	var IVector vec = val IVector(vec_a.x * sca, vec_a.y * sca);
 	escape vec;
 end
 
-code/call Vec_ScaDiv( var IVector vec_a, var int sca ) -> IVector
+code/call VMultVec( var IVector vec_a, var IVector vec_b ) -> IVector
+do
+	var IVector vec = val IVector(vec_a.x * vec_b.x, vec_a.y * vec_b.y);
+	escape vec;
+end
+
+code/call VDivSca( var IVector vec_a, var real sca ) -> IVector
 do
 	var IVector vec = val IVector(vec_a.x / sca, vec_a.y / sca);
 	escape vec;
+end
+
+code/call VAbs( var IVector v) -> IVector
+do
+	v.x = _fabs(v.x);
+	v.y = _fabs(v.y);
+	escape v;
+end
+
+code/call VLength( var IVector v ) -> real
+do
+	var real length = _sqrt((v.x * v.x) + (v.y * v.y));
+	escape length;
+end
+
+code/call VNormalize( var IVector v ) -> IVector
+do
+	if call VLength(v) == 0 then
+		escape outer.null_vector;
+	end
+	var IVector u = val IVector (v.x / call VLength(v), v.y / call VLength(v));
+	escape u;
+end
+
+code/call Vector_Components ( var IVector start_pos, var IVector target ) -> IVector
+do
+    var IVector vector = val IVector(target.x - start_pos.x, target.y - start_pos.y);
+    var real angle = _atan2(vector.y, vector.x);
+    var IVector components = val IVector(_cos(angle), _sin(angle));
+    escape components;
 end

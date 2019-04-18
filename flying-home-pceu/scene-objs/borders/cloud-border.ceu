@@ -1,0 +1,29 @@
+code/await Cloud_Top_Border (var& IMap imap) -> NEVER
+do
+    var IVector size                        = val IVector ( 32, 16 );
+    var IVector offset                      = val IVector ( 8, 8 );
+    var IVector scale                       = val IVector ( 1, 1 );
+    var IVector bounds                      = call Get_Map_Y_Boundaries(&imap);
+    var IVector position                    = val IVector( 0, bounds.x + size.y/2 );
+    var IVector velocity                    = val IVector ( -40, 0 );
+
+    var IImage_Quad iquad                   = call Create_Image_Quad("assets/img/borders/cloud-border.bmp", offset, 2);
+    var IBorder iborder                     = val IBorder ( &imap, iquad, position, size, scale, velocity );
+    var&? Border border                     = spawn Border ( &iborder );
+    await border;
+end
+
+code/await Cloud_Bottom_Border (var& IMap imap) -> NEVER
+do
+    var IVector size                        = val IVector ( 32, 16 );
+    var IVector offset                      = val IVector ( 8, 24 );
+    var IVector scale                       = val IVector ( 1, -1 );
+    var IVector bounds                      = call Get_Map_Y_Boundaries(&imap);
+    var IVector position                    = val IVector( 0, bounds.y - size.y/2 );
+    var IVector velocity                    = val IVector ( -40, 0 );
+
+    var IImage_Quad iquad                   = call Create_Image_Quad("assets/img/borders/cloud-border.bmp", offset, 2);
+    var IBorder iborder                     = val IBorder ( &imap, iquad, position, size, scale, velocity );
+    var&? Border border                     = spawn Border ( &iborder );
+    await border;
+end

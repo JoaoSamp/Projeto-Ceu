@@ -1,0 +1,55 @@
+data ITile_Manager with
+	var& IMap imap;
+	var BType type;
+	var IVector size = val IVector (0, 0);
+	var int id;
+	event int collision;
+	event none destroy;
+end
+
+data ITile_Collision with
+    var bool collision;
+    var int effect;
+end
+
+code/call Tiles_Draw (var& ITile_Manager itile, var& IImage_Quad iquad) -> none
+do
+	var int x_index = call Get_X_Index_By_X_Pos ( &itile.imap, itile.imap.position.x );
+	x_index = -x_index;
+	var int i;
+	var IVector camera_size = call Camera_Get_Size();
+    loop i in [x_index -> (x_index + ((camera_size.x / itile.imap.tile_size.x) as int) + 1) as int] do
+    	if i < itile.imap.size.x then
+    		var int j;
+        	loop j in [0 -> (itile.imap.size.y -1) as int] do
+                var int index = i + (j * (itile.imap.size.x as int));
+                emit GRAPHICS_SET_BMP_FRAME (iquad.draw_frame, iquad.frames);
+        		if index > 0 and index < $itile.imap.tile_map then
+	                if itile.imap.tile_map[index] == itile.id then
+	                	var IVector position = call Get_Pos_By_Index( &itile.imap, index );
+						call Draw_Image( &iquad, position.x, position.y, 1, 1, iquad.offset.x, iquad.offset.y, 0);
+					end
+				end
+			end
+		end
+	end
+end
+
+code/await/dynamic Tile (var&/dynamic ITile_Manager itile ) -> NEVER
+do
+
+end
+
+code/call Tile_Collision_Check (var& ITile_Manager itile, var& IMoving_Obj imov_obj, var int index ) -> bool
+do
+	var IVector position  		= call Get_Pos_By_Index ( &itile.imap, index );
+    var IMoving_Obj tile_box  	= call Create_Moving_Obj( position, itile.size);
+    var bool collision 			= call Overlaps (&tile_box.iaabb, &imov_obj.iaabb );
+    escape collision;
+end
+
+code/call/dynamic Tile_Hit (var&/dynamic IActor iactor, var&/dynamic ITile_Manager itile, var int index) -> ITile_Collision
+do
+    var ITile_Collision it_collision = val ITile_Collision( false, 0);
+    escape it_collision;
+end

@@ -1,1 +1,20 @@
-var real gravity = -100;
+var int key_up = _SDLK_w;
+var int key_down = _SDLK_s;
+var int key_right = _SDLK_d;
+var int key_left = _SDLK_a;
+
+var int key_confirm = _SDLK_RETURN;
+
+var int key_a = _SDLK_KP_5;
+var int key_b = _SDLK_KP_6;
+var int key_x = _SDLK_KP_4;
+var int key_y = _SDLK_KP_8;
+
+data Actor_Tag as nothing;
+data Actor_Tag.Playable as 1;
+data Actor_Tag.Enemy 	as 2;
+
+
+data State as nothing;
+data State.Playable as 1;
+data State.Enemy 	as 2;

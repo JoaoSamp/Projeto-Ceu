@@ -1,21 +1,36 @@
 data IActor with
     var IMoving_Obj imov_obj;
-    event none hit;
+    event (bool, int, int, int, real, real) hit;
+    event none destroy;
+end
+
+data ICollision with
+    var bool hitted = false;
+    var int type = 0;
+    var int effect = 0;
+    var int damage = 0;
+    var real angle = 0;
+    var real magnitude = 0;
+end
+
+data IActor_Collision with
+    var ICollision hitman_data;
+    var ICollision target_data;
 end
 
 code/call Create_Actor (var IMoving_Obj imov_obj) -> IActor
 do
-    var IActor iactor = val IActor( imov_obj, _ );
+    var IActor iactor = val IActor( imov_obj, _, _ );
     escape iactor;
 end
 
-code/await/dynamic Actor ( var&/dynamic IActor iact )
-    -> ( var IActor iactor = iact ) -> none
+code/await/dynamic Actor ( var&/dynamic IActor iactor, pool&[] Actor actors) -> none
 do
 
 end
 
-code/await/dynamic Hit_Actor (var&/dynamic IActor hitman, var&/dynamic IActor hitted) -> none
+code/call/dynamic Actor_Hit (var&/dynamic IActor ihitman, var&/dynamic IActor itarget) -> IActor_Collision
 do
-
+    var IActor_Collision ia_collision = val IActor_Collision ( ICollision(_, _, _, _, _, _), ICollision(_, _, _, _, _, _) );
+    escape ia_collision;
 end

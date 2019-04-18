@@ -6,4 +6,38 @@ data IAnimation;
 data IBackground;
 data IMap;
 data IActor;
+data IActor.IEnemie;
+data IActor.IEnemie.IBrat;
 data IActor.IPlayer;
+data IActor.IToxic_Quail;
+data IActor.IPoison_Bomb;
+data ITile_Manager;
+data ITile_Manager.ICloud;
+data ITile_Manager.IRing;
+data ITile_Manager.IPoison_Cloud;
+
+code/call Signed (var real value) -> int
+do
+	if value < 0 then
+		escape -1;
+	end
+	escape 1;
+end
+
+code/call Add_Limit(var int init, var int value, var int limit) -> int
+do
+	if init < limit then		
+	    init = init + value;
+	    if init > limit then
+	        init = limit;
+	    end
+	    escape init;
+	else/if init > limit then
+		init = init + value;
+		if init < limit then
+			init = limit;
+		end
+		escape init;
+	end
+	escape limit;
+end

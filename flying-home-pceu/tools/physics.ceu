@@ -1,0 +1,199 @@
+code/call Check_Top_Collision(var IMoving_Obj imov_obj, var& IMap imap) -> int
+do
+    var IVector half_size   = call AABB_Get_Half_Size(&imov_obj.iaabb);
+    var real top            = imov_obj.iaabb.center.y - half_size.y - 1;
+    var real left           = imov_obj.iaabb.center.x - half_size.x;
+    var real right          = imov_obj.iaabb.center.x + half_size.x;
+
+    loop do
+        var IVector position = val IVector(left, top);
+        var int index = call Get_Index_By_Relative_Pos (&imap, position);
+        if index > 0 and index < $imap.tile_map then
+            if imap.tile_map[index] != 0 then
+                escape index;
+            end
+        end
+        if left >= right then
+            escape -1;
+        end
+
+        left = left + imap.tile_size.x;
+        if left > right then
+            left = right;
+        end
+    end
+end
+
+code/call Check_Bot_Collision(var IMoving_Obj imov_obj, var& IMap imap) -> int
+do
+    var IVector half_size   = call AABB_Get_Half_Size(&imov_obj.iaabb);
+    var real bot            = imov_obj.iaabb.center.y + half_size.y + 1;
+    var real left           = imov_obj.iaabb.center.x - half_size.x;
+    var real right          = imov_obj.iaabb.center.x + half_size.x;
+
+    loop do
+        var IVector position = val IVector(left, bot);
+        var int index = call Get_Index_By_Relative_Pos (&imap, position);
+        if index > 0 and index < $imap.tile_map then
+            if imap.tile_map[index] != 0 then
+                escape index;
+            end
+        end
+        if left >= right then
+            escape -1;
+        end
+
+        left = left + imap.tile_size.x;
+        if left > right then
+            left = right;
+        end
+    end
+end
+
+code/call Check_Left_Collision(var IMoving_Obj imov_obj, var& IMap imap) -> int
+do
+    var IVector half_size   = call AABB_Get_Half_Size(&imov_obj.iaabb);
+    var real left           = imov_obj.iaabb.center.x - half_size.x - 1;
+    var real top            = imov_obj.iaabb.center.y - half_size.y;
+    var real bot            = imov_obj.iaabb.center.y + half_size.y;
+
+    loop do
+        var IVector position = val IVector(left, top);
+        var int index = call Get_Index_By_Relative_Pos (&imap, position);
+        if index > 0 and index < $imap.tile_map then
+            if imap.tile_map[index] != 0 then
+                escape index;
+            end
+        end
+        if top >= bot then
+            escape -1;
+        end
+
+        top = top + imap.tile_size.x;
+        if top > bot then
+            top = bot;
+        end
+    end
+end
+
+code/call Check_Right_Collision(var IMoving_Obj imov_obj, var& IMap imap) -> int
+do
+    var IVector half_size   = call AABB_Get_Half_Size(&imov_obj.iaabb);
+    var real right          = imov_obj.iaabb.center.x + half_size.x + 1;
+    var real top            = imov_obj.iaabb.center.y - half_size.y;
+    var real bot            = imov_obj.iaabb.center.y + half_size.y;
+
+    loop do
+        var IVector position = val IVector(right, top);
+        var int index = call Get_Index_By_Relative_Pos (&imap, position);
+        if index > 0 and index < $imap.tile_map then
+            if imap.tile_map[index] != 0 then
+                escape index;
+            end
+        end
+        if top >= bot then
+            escape -1;
+        end
+
+        top = top + imap.tile_size.x;
+        if top > bot then
+            top = bot;
+        end
+    end
+end
+
+code/await Update_Actors (pool&[] Actor actors, pool&[] Tile tiles, var& IMap imap) -> NEVER
+do
+    var int dt;
+    every dt in FRAMES_UPDATE do
+        var&? Actor actor;
+        loop actor in actors do
+            var IMoving_Obj imov_obj = actor!.iactor.imov_obj;
+            call Kinematic_Update ( &imov_obj.ikinematic, imov_obj.isteering, dt );
+
+            var int top_collision_index = call Check_Top_Collision( imov_obj, &imap );
+            if top_collision_index > 0 then
+                var&? Tile tile;
+                loop tile in tiles do
+                    if tile!.itile.id == imap.tile_map[top_collision_index] then
+                        var ITile_Collision it_collision = call/dynamic Tile_Hit (&actor!.iactor, &tile!.itile, top_collision_index);
+                        if it_collision.collision then
+                            emit tile!.itile.collision(top_collision_index);
+                        end
+                        break;
+                    end
+                end
+            end
+
+            var int bot_collision_index = call Check_Bot_Collision( imov_obj, &imap );
+            if bot_collision_index > 0 then
+                var&? Tile tile;
+                loop tile in tiles do
+                    if tile!.itile.id == imap.tile_map[bot_collision_index] then
+                        var ITile_Collision it_collision = call/dynamic Tile_Hit (&actor!.iactor, &tile!.itile, bot_collision_index);
+                        if it_collision.collision then
+                            emit tile!.itile.collision(bot_collision_index);
+                        end
+                        break;
+                    end
+                end
+            end
+
+            var int left_collision_index = call Check_Left_Collision( imov_obj, &imap );
+            if left_collision_index > 0 then
+                var&? Tile tile;
+                loop tile in tiles do
+                    if tile!.itile.id == imap.tile_map[left_collision_index] then
+                        var ITile_Collision it_collision = call/dynamic Tile_Hit (&actor!.iactor, &tile!.itile, left_collision_index);
+                        if it_collision.collision then
+                            emit tile!.itile.collision(left_collision_index);
+                        end
+                        break;
+                    end
+                end
+            end
+
+            var int right_collision_index = call Check_Right_Collision( imov_obj, &imap );
+            if right_collision_index > 0 then
+                var&? Tile tile;
+                loop tile in tiles do
+                    if tile!.itile.id == imap.tile_map[right_collision_index] then
+                        var ITile_Collision it_collision = call/dynamic Tile_Hit (&actor!.iactor, &tile!.itile, right_collision_index);
+                        if it_collision.collision then
+                            emit tile!.itile.collision(right_collision_index);
+                            break;
+                        end
+                    end
+                end
+            end
+
+            var IVector map_boundaries  = call Get_Map_Y_Boundaries (&imap);
+            var IVector half_size       = call AABB_Get_Half_Size(&imov_obj.iaabb);
+
+            if imov_obj.ikinematic.position.y + half_size.y > map_boundaries.x then
+                if imov_obj.iboundaries.bound_top then
+                    imov_obj.ikinematic.position.y = map_boundaries.x - half_size.y;
+                end
+            else/if imov_obj.ikinematic.position.y - half_size.y < map_boundaries.y then
+                if imov_obj.iboundaries.bound_bottom then
+                    imov_obj.ikinematic.position.y = map_boundaries.y + half_size.y;
+                end
+            end
+            var IVector camera_size = call Camera_Get_Size();
+            var IVector camera_bounds_x = call Camera_Get_Boundaries_X();
+
+            if imov_obj.ikinematic.position.x - half_size.x < camera_bounds_x.x then
+                if imov_obj.iboundaries.bound_left then
+                    imov_obj.ikinematic.position.x = camera_bounds_x.x + half_size.x;
+                end
+            else/if imov_obj.ikinematic.position.x + half_size.x > camera_bounds_x.y then
+                if imov_obj.iboundaries.bound_right then
+                    imov_obj.ikinematic.position.x = camera_bounds_x.y - half_size.x;
+                end
+            end
+
+            imov_obj.iaabb.center = imov_obj.ikinematic.position;
+            actor!.iactor.imov_obj = imov_obj;
+        end
+    end
+end 

@@ -1,0 +1,30 @@
+data IImage_Quad with
+	var text image_name;
+    var IVector offset;
+	var int frames;
+	var int draw_frame = 0;
+    var Color color = val Color (255, 255, 255);
+end
+
+code/call Create_Image_Quad(var text image_name, var IVector offset, var int frames) -> IImage_Quad
+do
+    var IImage_Quad iquad = val IImage_Quad(image_name, offset, frames, _, _);
+    escape iquad;
+end
+
+code/call Next_Frame ( var& IImage_Quad iquad ) -> bool
+do
+    iquad.draw_frame = iquad.draw_frame + 1;
+    if iquad.draw_frame == iquad.frames then
+    	iquad.draw_frame = 0;
+    	escape false;
+    end
+    escape true;
+end
+
+code/await Quad_Cycle ( var& IImage_Quad iquad, var int fps ) -> NEVER
+do
+    every (1000/fps)ms do
+        call Next_Frame( &iquad );
+    end
+end
