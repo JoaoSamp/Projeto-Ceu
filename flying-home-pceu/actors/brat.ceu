@@ -38,7 +38,7 @@ do
     var real attack_acc     = 600;
     var real stop_distance  = 10;
 
-    ibrat.imov_obj.iboundaries.bound_right        = true;
+    ibrat.imov_obj.iboundaries.bound_right  = true;
     par/or do
         pause/if e_stop_state do
             loop do
@@ -70,23 +70,27 @@ do
                             await Animation (&ianim_attacking, &ibrat.imov_obj.iaabb.center, &ibrat.imov_obj.iaabb.scale, &ibrat.imov_obj.iaabb.rotate_angle );
                         end
                     with
-                        var IVector target_direction = call VSub(ibrat.itarget.imov_obj.iaabb.center, ibrat.imov_obj.iaabb.center);
-                        ibrat.imov_obj.iaabb.scale.x = _fabs(ibrat.imov_obj.iaabb.scale.x) * call Signed(target_direction.x);
+                        var IVector target_direction            = call VSub(ibrat.itarget.imov_obj.iaabb.center, ibrat.imov_obj.iaabb.center);
                         ibrat.imov_obj.ikinematic.acceleration  = val IVector ( attack_acc, attack_acc);
                         var IVector target_position             = ibrat.itarget.imov_obj.iaabb.center;
                         ibrat.imov_obj.isteering                = call Steering_Seek(ibrat.imov_obj.ikinematic, target_position);
+                        var IVector current_distance = outer.null_vector;
                         par/or do
                             every SDL_DT do
-                                var IVector current_distance = call VSub(target_position, ibrat.imov_obj.iaabb.center);
-                                if call VLength(current_distance) > stop_distance then
-                                    if call Signed(ibrat.imov_obj.isteering.linear.x) != call Signed(current_distance.x) then
-                                        break;
-                                    end
-                                    if call Signed(ibrat.imov_obj.isteering.linear.y) != call Signed(current_distance.y) then
-                                        break;
-                                    end
+                                if ibrat.imov_obj.pushes_left_tile or ibrat.imov_obj.pushes_right_tile then
+                                    ibrat.imov_obj.isteering.linear.x       = -ibrat.imov_obj.isteering.linear.x;
+                                    ibrat.imov_obj.ikinematic.velocity.x    = -(ibrat.imov_obj.ikinematic.velocity.x * 0.5);
                                 end
+                                if ibrat.imov_obj.pushes_top_tile or ibrat.imov_obj.pushes_bottom_tile then
+                                    ibrat.imov_obj.isteering.linear.y       = -ibrat.imov_obj.isteering.linear.y;
+                                    ibrat.imov_obj.ikinematic.velocity.y    = -(ibrat.imov_obj.ikinematic.velocity.y * 0.5);
+                                end
+                                ibrat.imov_obj.iaabb.scale.x            = _fabs(ibrat.imov_obj.iaabb.scale.x) * call Signed(ibrat.imov_obj.isteering.linear.x);
+                                current_distance = call VSub(target_position, ibrat.imov_obj.iaabb.center);
                             end
+                        with
+                            await SDL_DT until call VLength(current_distance) < stop_distance;
+                            await SDL_DT until call VLength(current_distance) > stop_distance;
                         with
                             await ibrat.hit;
                         end
