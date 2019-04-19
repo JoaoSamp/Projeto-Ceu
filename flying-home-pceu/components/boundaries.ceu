@@ -10,3 +10,9 @@ do
 	var IBoundaries boundaries = val IBoundaries (false, false, false, false);
 	escape boundaries;
 end
+
+code/call Create_Bound(none) -> IBoundaries
+do
+	var IBoundaries boundaries = val IBoundaries (_, _, _, _);
+	escape boundaries;
+end
