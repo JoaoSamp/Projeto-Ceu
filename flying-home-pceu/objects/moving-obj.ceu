@@ -15,6 +15,16 @@ data IMoving_Obj with
 	var bool pushed_right 	= false;
 	var bool pushed_left 	= false;
 
+	var bool pushes_top_tile 	= false;
+	var bool pushes_bottom_tile = false;
+	var bool pushes_right_tile 	= false;
+	var bool pushes_left_tile 	= false;
+
+	var bool pushed_top_tile 	= false;
+	var bool pushed_bottom_tile = false;
+	var bool pushed_right_tile 	= false;
+	var bool pushed_left_tile 	= false;
+
 	var bool destroyed = false;
 end
 
@@ -23,9 +33,12 @@ do
 	var IAABBox aabb 						= val IAABBox(position, call VDivSca(size, 2), _, _);
 	var IKinematic_Component ikinematic 	= call Create_Kinematic_Component ( position );
 	var ISteering_Component isteering 		= val ISteering_Component(_, _);
-	var IMoving_Obj imov_obj 				= val IMoving_Obj (aabb, ikinematic, isteering, 
-																_, _, _, _, _, 
-																_, _, _, _, _);
+	var IMoving_Obj imov_obj 				= val IMoving_Obj (aabb, ikinematic, isteering, _,
+																_, _, _, _, 
+																_, _, _, _, 
+																_, _, _, _, 
+																_, _, _, _,
+																_);
 	escape imov_obj;
 end
 

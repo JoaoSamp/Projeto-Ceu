@@ -111,6 +111,24 @@ do
             var IMoving_Obj imov_obj = actor!.iactor.imov_obj;
             call Kinematic_Update ( &imov_obj.ikinematic, imov_obj.isteering, dt );
 
+            imov_obj.pushed_top     = imov_obj.pushes_top;
+            imov_obj.pushed_bottom  = imov_obj.pushes_bottom;
+            imov_obj.pushed_left    = imov_obj.pushes_left;
+            imov_obj.pushed_right   = imov_obj.pushes_right;
+            imov_obj.pushes_top     = false;
+            imov_obj.pushes_bottom  = false;
+            imov_obj.pushes_left    = false;
+            imov_obj.pushes_right   = false;
+
+            imov_obj.pushed_top_tile     = imov_obj.pushes_top_tile;
+            imov_obj.pushed_bottom_tile  = imov_obj.pushes_bottom_tile;
+            imov_obj.pushed_left_tile    = imov_obj.pushes_left_tile;
+            imov_obj.pushed_right_tile   = imov_obj.pushes_right_tile;
+            imov_obj.pushes_top_tile     = false;
+            imov_obj.pushes_bottom_tile  = false;
+            imov_obj.pushes_left_tile    = false;
+            imov_obj.pushes_right_tile   = false;
+
             var int top_collision_index = call Check_Top_Collision( imov_obj, &imap );
             if top_collision_index > 0 then
                 var&? Tile tile;
@@ -172,11 +190,15 @@ do
 
             if imov_obj.ikinematic.position.y + half_size.y > map_boundaries.x then
                 if imov_obj.iboundaries.bound_top then
-                    imov_obj.ikinematic.position.y = map_boundaries.x - half_size.y;
+                    imov_obj.ikinematic.position.y  = map_boundaries.x - half_size.y;
+                    imov_obj.ikinematic.velocity.y  = 0;
+                    imov_obj.pushes_top_tile        = true;
                 end
             else/if imov_obj.ikinematic.position.y - half_size.y < map_boundaries.y then
                 if imov_obj.iboundaries.bound_bottom then
-                    imov_obj.ikinematic.position.y = map_boundaries.y + half_size.y;
+                    imov_obj.ikinematic.position.y  = map_boundaries.y + half_size.y;
+                    imov_obj.ikinematic.velocity.y  = 0;
+                    imov_obj.pushes_bottom_tile     = true;
                 end
             end
             var IVector camera_size = call Camera_Get_Size();
@@ -184,11 +206,13 @@ do
 
             if imov_obj.ikinematic.position.x - half_size.x < camera_bounds_x.x then
                 if imov_obj.iboundaries.bound_left then
-                    imov_obj.ikinematic.position.x = camera_bounds_x.x + half_size.x;
+                    imov_obj.ikinematic.position.x  = camera_bounds_x.x + half_size.x;
+                    imov_obj.pushes_left_tile       = true;
                 end
             else/if imov_obj.ikinematic.position.x + half_size.x > camera_bounds_x.y then
                 if imov_obj.iboundaries.bound_right then
-                    imov_obj.ikinematic.position.x = camera_bounds_x.y - half_size.x;
+                    imov_obj.ikinematic.position.x  = camera_bounds_x.y - half_size.x;
+                    imov_obj.pushes_right_tile      = true;
                 end
             end
 
