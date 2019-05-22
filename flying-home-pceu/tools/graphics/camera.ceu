@@ -1,44 +1,13 @@
 data ICamera with
-	var IVector position 	= val IVector (0, 0);
-	var IVector scale 		= val IVector (1, 1);
-	var IVector size 		= val IVector (1, 1);
+	var IKinematic_Component ikinematic;
+	var ISteering_Component isteering;
+	var IAABBox iaabb;
 end
 
-var ICamera camera 	= val ICamera ( _, _, _ );
-
-code/call Draw_Image(var& IImage_Quad iquad, var real x, var real y, var real sx, var real sy, var real ox, var real oy, var real rotate_angle) -> none
-do
-
-	if sx < 0 and sy < 0 then
-		emit GRAPHICS_SET_FLIP(FLIP_BOTH);
-	else/if sx < 0 then
-		emit GRAPHICS_SET_FLIP(FLIP_HORIZONTAL);
-	else/if sy < 0 then
-		emit GRAPHICS_SET_FLIP(FLIP_VERTICAL);
-	else
-		emit GRAPHICS_SET_FLIP(FLIP_NONE);
-	end
-	emit GRAPHICS_SET_ANCHOR (HANCHOR_LEFT, VANCHOR_TOP);
-
-
-	sx = _fabs(sx);
-	sy = _fabs(sy);
-	x = x - (ox * sx);
-	y = y + (oy * sy);
-	
-	x = x - outer.camera.position.x;
-	y = y - outer.camera.position.y;
-	x = x * outer.camera.scale.x;
-	y = y * outer.camera.scale.y;
-	sx = sx * outer.camera.scale.x;
-	sy = sy * outer.camera.scale.y;
-
-	emit GRAPHICS_SET_BMP_FRAME ( iquad.draw_frame, iquad.frames );
-	emit GRAPHICS_SET_SCALE ( sx, sy );
-	emit GRAPHICS_SET_ROTATION ( rotate_angle );
-	emit GRAPHICS_SET_COLOR_NAME(iquad.color);
-	emit GRAPHICS_DRAW_BMP ( x as int, y as int, &&iquad.image_name[0] as text );
-end
+var ICamera camera 	= val ICamera ( call Create_Kinematic_Component ( IVector(0,0) ), 
+									ISteering_Component(_, _), 
+									IAABBox(IVector(0, 0), IVector(1, 1), _, _)
+								  );
 
 code/call Camera_Set_Scale_By_Size(var IVector size) -> none
 do
@@ -46,12 +15,22 @@ do
 	var int h = 0;
 	call _SDL_GetWindowSize( &&outer.sdl.win as _SDL_Window&&, &&w, &&h );
 	var IVector scale = val IVector ( w / size.x, h / size.y );
-	outer.camera.scale = scale;
+	outer.camera.iaabb.scale = scale;
 end
 
 code/call Camera_Set_Position (var IVector position) -> none
 do
-	outer.camera.position = position;
+	outer.camera.ikinematic.position = position;
+end
+
+code/call Camera_Set_Velocity (var IVector velocity) -> none
+do
+	outer.camera.ikinematic.velocity = velocity;
+end
+
+code/call Camera_Get_Scale(none) -> IVector
+do
+	escape outer.camera.iaabb.scale;
 end
 
 code/call Camera_Get_Size (none) -> IVector
@@ -60,13 +39,18 @@ do
 	var int h = 0;
 	call _SDL_GetWindowSize( &&outer.sdl.win as _SDL_Window&&, &&w, &&h );
 	var IVector size = val IVector (w, h);
-	size = val IVector (size.x / outer.camera.scale.x, size.y / outer.camera.scale.y);
+	size = val IVector (size.x / outer.camera.iaabb.scale.x, size.y / outer.camera.iaabb.scale.y);
 	escape size;
 end
 
 code/call Camera_Get_Position (none) -> IVector
 do
-	escape outer.camera.position;
+	escape outer.camera.ikinematic.position;
+end
+
+code/call Camera_Get_Velocity (none) -> IVector
+do
+	escape outer.camera.ikinematic.velocity;
 end
 
 code/call Camera_Get_Boundaries_Y(none) -> IVector
@@ -87,14 +71,57 @@ end
 
 code/call On_Screen(var IVector position, var IVector size) -> bool
 do
-	var IVector half_size = call VMultSca(size, 0.5);
-	var IVector camera_half_size = call VMultSca(call Camera_Get_Size(), 0.5);
+	var IVector half_size 			= call VMultSca(size, 0.5);
+	var IVector camera_half_size 	= call VMultSca(call Camera_Get_Size(), 0.5);
+	var IVector camera_position 	= call Camera_Get_Position();
 
-	if _fabs( position.x - outer.camera.position.x ) > half_size.x + camera_half_size.x  then
+	if _fabs( position.x - camera_position.x ) > half_size.x + camera_half_size.x  then
 		escape false;
 	end
-	if _fabs( position.y - outer.camera.position.y ) > half_size.y + camera_half_size.y  then
+	if _fabs( position.y - camera_position.y ) > half_size.y + camera_half_size.y  then
 		escape false;
 	end
 	escape true;
+end
+
+code/call Draw_Image(var& IImage_Quad iquad, var real x, var real y, var real sx, var real sy, var real ox, var real oy, var real rotate_angle) -> none
+do
+
+	if sx < 0 and sy < 0 then
+		emit GRAPHICS_SET_FLIP(FLIP_BOTH);
+	else/if sx < 0 then
+		emit GRAPHICS_SET_FLIP(FLIP_HORIZONTAL);
+	else/if sy < 0 then
+		emit GRAPHICS_SET_FLIP(FLIP_VERTICAL);
+	else
+		emit GRAPHICS_SET_FLIP(FLIP_NONE);
+	end
+	emit GRAPHICS_SET_ANCHOR (HANCHOR_LEFT, VANCHOR_TOP);
+
+
+	sx 	= _fabs(sx);
+	sy 	= _fabs(sy);
+	x 	= x - (ox * sx);
+	y 	= y + (oy * sy);
+	
+	var IVector camera_position = call Camera_Get_Position();
+	var IVector camera_scale 	= call Camera_Get_Scale();
+
+	x 	= x - camera_position.x;
+	y 	= y - camera_position.y;
+	x 	= x * camera_scale.x;
+	y 	= y * camera_scale.y;
+	sx 	= sx * camera_scale.x;
+	sy 	= sy * camera_scale.y;
+
+	emit GRAPHICS_SET_BMP_FRAME ( iquad.draw_frame, iquad.frames );
+	emit GRAPHICS_SET_SCALE ( sx, sy );
+	emit GRAPHICS_SET_ROTATION ( rotate_angle );
+	emit GRAPHICS_SET_COLOR_NAME(iquad.color);
+	emit GRAPHICS_DRAW_BMP ( _round(x) as int, _round(y) as int, iquad.image_name );
+end
+
+code/call Camera_Update(var real dt) -> none
+do
+	call Kinematic_Update_Position (&outer.camera.ikinematic, dt);
 end

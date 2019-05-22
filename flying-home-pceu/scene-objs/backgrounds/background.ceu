@@ -1,54 +1,36 @@
 data IBackground with
 	var& IImage_Quad iquad;
-	var IVector position 	= val IVector(0, 0);
-	var IVector size;
-	var IVector scale 		= val IVector(1, 1);
-	var& IVector base_speed;
-	var IVector speed_add;
-	var real rotate_angle = 0;
+	var IMoving_Obj imov_obj;
+	var IVector relative_velocity;
 end
 
-
-code/call Create_Background (var& IImage_Quad iquad, var IVector size, var& IVector base_speed, var IVector speed) -> IBackground
+code/call Create_Background (var& IImage_Quad iquad, var IMoving_Obj imov_obj, var IVector relative_velocity) -> IBackground
 do
-	var IBackground ibg = val IBackground(&iquad, _, size, _, &base_speed, speed, _);
+	var IBackground ibg = val IBackground(&iquad, imov_obj, relative_velocity);
 	escape ibg;
 end
 
 code/await Background_Image ( var& IBackground ibackground ) -> none
 do
 	par/or do
+		var& IVector position = &ibackground.imov_obj.ikinematic.position;
+		var& IVector scale = &ibackground.imov_obj.iaabb.scale;
 		every FRAMES_REDRAW do
-			if call On_Screen (ibackground.position, call VAbs(call VMultVec( ibackground.size, ibackground.scale ))) then
+			if call On_Screen (position, call AABB_Get_Size(&ibackground.imov_obj.iaabb) ) then
 				break;
 			end
 		end
 		every FRAMES_REDRAW do
-    		call Draw_Image( &ibackground.iquad, ibackground.position.x, ibackground.position.y, ibackground.scale.x, ibackground.scale.y, ibackground.iquad.offset.x, ibackground.iquad.offset.y, ibackground.rotate_angle );
-			if not(call On_Screen (ibackground.position, call VAbs(call VMultVec( ibackground.size, ibackground.scale )))) then
+    		call Draw_Image( &ibackground.iquad, position.x, position.y, scale.x, scale.y, ibackground.iquad.offset.x, ibackground.iquad.offset.y, ibackground.imov_obj.iaabb.rotate_angle );
+			if not(call On_Screen (position, call AABB_Get_Size(&ibackground.imov_obj.iaabb) )) then
 				break;
 			end
 		end
 	with
         var int dt;
         every dt in FRAMES_UPDATE do
-		    var real speed_x = (ibackground.base_speed.x + ibackground.speed_add.x) * dt/1000;
-		    var real speed_y = (ibackground.base_speed.y + ibackground.speed_add.y) * dt/1000;
-
-		    ibackground.position.x = (ibackground.position.x + speed_x);
-		    ibackground.position.y = (ibackground.position.y + speed_y);
+			ibackground.imov_obj.ikinematic.velocity = call VAdd(call Camera_Get_Velocity(), ibackground.relative_velocity);
+            call Kinematic_Update_Position ( &ibackground.imov_obj.ikinematic, dt );
         end
-	end
-end
-
-code/await Background_Color ( var int r, var int g, var int b, var int a ) -> NEVER
-do
-	every FRAMES_REDRAW do
-		var IVector camera_size = call Camera_Get_Size ();
-		var IVector camera_position = call Camera_Get_Position();
-		emit GRAPHICS_SET_COLOR_RGB(r, g, b);
-		emit GRAPHICS_SET_ANCHOR (HANCHOR_CENTER, VANCHOR_CENTER);
-		emit GRAPHICS_DRAW_RECT( -1, 1, (camera_size.x + 2) as int, (camera_size.y + 2) as int);
-		emit GRAPHICS_SET_COLOR_RGB(255, 255, 255);
 	end
 end

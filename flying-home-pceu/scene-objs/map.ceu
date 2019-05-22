@@ -40,6 +40,12 @@ do
     escape (x as int);
 end
 
+code/call Get_Y_Index_By_Y_Pos (var& IMap imap, var real pos_y) -> int
+do
+    var real y = (pos_y as int) % (imap.tile_size.y as int);
+    escape (y as int);
+end
+
 code/call Get_Map_Y_Boundaries (var& IMap imap) -> IVector
 do
     var IVector boundaries = val IVector (imap.position.y + (imap.size.y * imap.tile_size.y), imap.position.y );
@@ -51,19 +57,3 @@ do
     var IVector boundaries = val IVector (imap.position.x, imap.position.x + (imap.size.x * imap.tile_size.x));
     escape boundaries;
 end
-
-code/await Map ( var& IMap imap )
-            -> ( var& IMap blue_sky = &imap )
-                -> none
-do
-    var int dt;
-    every dt in FRAMES_UPDATE do
-        var real speed_x = ((imap.velocity.x * dt)/1000);
-        var real speed_y = ((imap.velocity.y * dt)/1000);
-        imap.position.x = imap.position.x + (speed_x);
-        imap.position.y = imap.position.y + (speed_y);
-        if _fabs(imap.position.x) > (imap.size.x * imap.tile_size.x) then
-            break;
-        end
-    end
-end 

@@ -7,7 +7,7 @@ do
 	escape iring;	
 end
 
-code/await Ring_Destroy (var& IVector map_speed, var IVector start_position ) -> none
+code/await Ring_Destroy ( var IVector start_position ) -> none
 do
 	var IVector offset 		= val IVector( 16, 16 );
     var IAnimation ianim_destroy  	= val IAnimation( call Create_Image_Quad( "assets/img/tiles/smallRing-destroy.bmp", offset, 9 ), 12);
@@ -15,18 +15,7 @@ do
     var IVector position 	= start_position;
     var IVector scale 		= val IVector( 1, 1 );
     var real rotate_angle 	= 0;
-	par/or do
-		var int dt;
-		every dt in FRAMES_UPDATE do
-		    var real speed_x = map_speed.x * dt/1000;
-		    var real speed_y = map_speed.y * dt/1000;
-
-		    position.x = position.x + speed_x;
-		    position.y = position.y + speed_y;
-		end
-	with
-		await Animation (&ianim_destroy, &position, &scale, &rotate_angle );
-	end
+	await Animation (&ianim_destroy, &position, &scale, &rotate_angle );
 end
 
 code/await Ring (var& ITile_Manager.IRing itile ) -> NEVER
@@ -45,7 +34,7 @@ do
 		every index in itile.collision do
 			itile.imap.tile_map[index] = 0;
 			var IVector start_position = call Get_Pos_By_Index( &itile.imap, index );
-			spawn Ring_Destroy (&itile.imap.velocity, start_position) in destroy_pool;
+			spawn Ring_Destroy ( start_position) in destroy_pool;
 		end
 	end
 end
@@ -58,10 +47,6 @@ end
 
 code/call/dynamic Tile_Hit (var&/dynamic IActor.IPlayer iactor, var&/dynamic ITile_Manager.IRing itile, var int index) -> ITile_Collision
 do
-	var ITile_Collision it_collision = val ITile_Collision( false, 0);
-	it_collision.collision = call Tile_Collision_Check(&itile, &iactor.imov_obj, index );
-	if it_collision.collision then
-		it_collision.collision = true;
-	end
+	var ITile_Collision it_collision = val ITile_Collision( true, 0);
 	escape it_collision;
 end
