@@ -3,11 +3,17 @@ native/const
 ;
 native/pure 
 	_fabs,
+	_cosf,
+	_sinf,
 	_atan2,
-	_floor
+	_floor,
+	_fmax,
+	_fmin,
+	_round
 ;
 
 emit WINDOW_SET_TITLE("Flying Home - Basic Character");
+emit WINDOW_SET_GRID(no);
 emit WINDOW_SET_SIZE(1024, 576, 1024, 576);
 emit WINDOW_SET_CLEAR_COLOR_RGB(128,205,225);
 emit FRAMES_SET(yes);
@@ -28,6 +34,7 @@ emit FRAMES_SET(yes);
 	#include "objects/moving-obj.ceu"
 
 	// tools for drawing
+	#include "tools/graphics/color-scheme.ceu"
 	#include "tools/graphics/image-quad.ceu"
 	#include "tools/graphics/camera.ceu"
 	#include "tools/graphics/animation.ceu"

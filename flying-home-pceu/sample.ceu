@@ -1,51 +1,40 @@
-emit WINDOW_SET_TITLE("Flying Home - Basic Character");
-emit WINDOW_SET_SIZE(1024, 576, 1024, 576);
+emit WINDOW_SET_TITLE("Sample");
+#define DIM 31
+emit WINDOW_SET_SIZE(DIM*10,DIM*10,DIM,DIM);
 emit WINDOW_SET_CLEAR_COLOR_RGB(128,205,225);
 emit FRAMES_SET(yes);
 
-
+var Color my_color = val Color (255, 255, 255, 125);
 emit GRAPHICS_SET_SCALE(2,2);
+var int r = 0;
 par do
-	var int i = 0;
-	var int fps = 12;
-	every (1000/fps)ms do
-		emit GRAPHICS_SET_BMP_FRAME(i, 8);
-		i = i+1;
-		if i == 8 then
-			i = 0;
+	every FRAMES_REDRAW do
+		emit GRAPHICS_SET_COLOR_NAME(my_color);
+		emit GRAPHICS_SET_BLEND_MODE(BLEND_MODE_NONE);
+		emit GRAPHICS_DRAW_ELLIPSE( 0, 0, 3, 3);
+		emit GRAPHICS_SET_BLEND_MODE(BLEND_MODE_BLEND);
+		emit GRAPHICS_DRAW_ELLIPSE( 0, 0, 5, 8);
+		emit GRAPHICS_SET_BLEND_MODE(BLEND_MODE_NONE);
+		emit GRAPHICS_SET_COLOR_NAME(COLOR_RED);
+		emit GRAPHICS_SET_COLOR_ALPHA(15);
+		emit GRAPHICS_SET_BLEND_MODE(BLEND_MODE_NONE);
+	end
+with
+	var int i;
+	loop do
+		loop i in [3 -> 10] do
+			await 100ms;
+			r = i;
+		end
+		loop i in ]3 <- 10[ do
+			await 100ms;
+			r = i;
 		end
 	end
 with
-	every FRAMES_REDRAW do
-		emit GRAPHICS_SET_SCALE(2,2);
-		emit GRAPHICS_SET_FLIP(FLIP_HORIZONTAL);
-		emit GRAPHICS_DRAW_BMP(0, 100, "assets/imgs/walker-flying.bmp");
-		emit GRAPHICS_SET_FLIP(FLIP_NONE);
-		emit GRAPHICS_DRAW_BMP(100, 100, "assets/imgs/walker-flying.bmp");
-		emit GRAPHICS_SET_FLIP(FLIP_VERTICAL);
-		emit GRAPHICS_DRAW_BMP(100, 0, "assets/imgs/walker-flying.bmp");
-		emit GRAPHICS_SET_FLIP(FLIP_BOTH);
-		emit GRAPHICS_DRAW_BMP(0, 0, "assets/imgs/walker-flying.bmp");
+	emit GRAPHICS_SET_DRAW_MODE(DRAW_MODE_LINE);
+	await 4s;
+	emit GRAPHICS_SET_DRAW_MODE(DRAW_MODE_FILL);
 
-		emit GRAPHICS_SET_ROTATION(45);
-		emit GRAPHICS_SET_SCALE(2,2);
-		emit GRAPHICS_SET_FLIP(FLIP_HORIZONTAL);
-		emit GRAPHICS_DRAW_TEXT(0, 100, "assets");
-		emit GRAPHICS_SET_FLIP(FLIP_NONE);
-		emit GRAPHICS_DRAW_TEXT(100, 100, "assets");
-		emit GRAPHICS_SET_FLIP(FLIP_VERTICAL);
-		emit GRAPHICS_DRAW_TEXT(100, 0, "assets");
-		emit GRAPHICS_SET_FLIP(FLIP_BOTH);
-		emit GRAPHICS_DRAW_TEXT(0, 0, "assets");
-		
-		emit GRAPHICS_SET_FLIP(FLIP_HORIZONTAL);
-		emit GRAPHICS_SET_WRITE_CURSOR(10, 10);
-		emit GRAPHICS_WRITELN("OK OK");
-
-		emit GRAPHICS_SET_SCALE(2,2);
-		emit GRAPHICS_SET_FLIP(FLIP_HORIZONTAL);
-
-		emit GRAPHICS_DRAW_LINE(0, 0, 10, 35);
-	end
 end
 
