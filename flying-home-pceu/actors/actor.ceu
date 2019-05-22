@@ -5,11 +5,11 @@ data IActor with
 end
 
 data ICollision with
-    var bool hitted = false;
-    var int type = 0;
-    var int effect = 0;
-    var int damage = 0;
-    var real angle = 0;
+    var bool hit    = false;
+    var int type    = 0;
+    var int effect  = 0;
+    var int damage  = 0;
+    var real angle  = 0;
     var real magnitude = 0;
 end
 
