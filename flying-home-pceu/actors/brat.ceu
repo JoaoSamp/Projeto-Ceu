@@ -65,8 +65,9 @@ do
                     await Animation (&ianim_attack_start, &ibrat.imov_obj.iaabb.center, &ibrat.imov_obj.iaabb.scale, &ibrat.imov_obj.iaabb.rotate_angle );
 
                     // Attacking
+                    var int attack_repetitons = 3;
                     par/or do
-                        loop do
+                        loop _ in [1 -> attack_repetitons] do
                             await Animation (&ianim_attacking, &ibrat.imov_obj.iaabb.center, &ibrat.imov_obj.iaabb.scale, &ibrat.imov_obj.iaabb.rotate_angle );
                         end
                     with
@@ -75,27 +76,21 @@ do
                         var IVector target_position             = ibrat.itarget.imov_obj.iaabb.center;
                         ibrat.imov_obj.isteering                = call Steering_Seek(ibrat.imov_obj.ikinematic, target_position);
                         var IVector current_distance = outer.null_vector;
-                        par/or do
-                            every SDL_DT do
-                                if ibrat.imov_obj.pushes_left_tile or ibrat.imov_obj.pushes_right_tile then
-                                    ibrat.imov_obj.isteering.linear.x       = -ibrat.imov_obj.isteering.linear.x;
-                                    ibrat.imov_obj.ikinematic.velocity.x    = -(ibrat.imov_obj.ikinematic.velocity.x * 0.5);
-                                end
-                                if ibrat.imov_obj.pushes_top_tile or ibrat.imov_obj.pushes_bottom_tile then
-                                    ibrat.imov_obj.isteering.linear.y       = -ibrat.imov_obj.isteering.linear.y;
-                                    ibrat.imov_obj.ikinematic.velocity.y    = -(ibrat.imov_obj.ikinematic.velocity.y * 0.5);
-                                end
-                                ibrat.imov_obj.iaabb.scale.x            = _fabs(ibrat.imov_obj.iaabb.scale.x) * call Signed(ibrat.imov_obj.isteering.linear.x);
-                                current_distance = call VSub(target_position, ibrat.imov_obj.iaabb.center);
+                        every SDL_DT do
+                            if ibrat.imov_obj.pushes_left_tile or ibrat.imov_obj.pushes_right_tile then
+                                ibrat.imov_obj.isteering.linear.x       = -ibrat.imov_obj.isteering.linear.x;
+                                ibrat.imov_obj.ikinematic.velocity.x    = -(ibrat.imov_obj.ikinematic.velocity.x * 0.5);
                             end
-                        with
-                            await SDL_DT until call VLength(current_distance) < stop_distance;
-                            await SDL_DT until call VLength(current_distance) > stop_distance;
-                        with
-                            await ibrat.hit;
+                            if ibrat.imov_obj.pushes_top_tile or ibrat.imov_obj.pushes_bottom_tile then
+                                ibrat.imov_obj.isteering.linear.y       = -ibrat.imov_obj.isteering.linear.y;
+                                ibrat.imov_obj.ikinematic.velocity.y    = -(ibrat.imov_obj.ikinematic.velocity.y * 0.5);
+                            end
+                            ibrat.imov_obj.iaabb.scale.x            = _fabs(ibrat.imov_obj.iaabb.scale.x) * call Signed(ibrat.imov_obj.isteering.linear.x);
                         end
-                        ibrat.imov_obj.isteering                = val ISteering_Component (IVector(0,0), 0);
+                    with
+                        await ibrat.hit;
                     end
+                    ibrat.imov_obj.isteering                = val ISteering_Component (IVector(0,0), 0);
                     // Stop Attack
                     await Animation (&ianim_attack_end, &ibrat.imov_obj.iaabb.center, &ibrat.imov_obj.iaabb.scale, &ibrat.imov_obj.iaabb.rotate_angle );
                     
@@ -115,16 +110,16 @@ do
                 par/or do
                     await ibrat.hit;
                 with
-                    ianim_hit.iquad.color = val Color( 255, 182, 182);
+                    ianim_hit.iquad.color = val Color( 255, 182, 182, 255);
                     await 150ms;
-                    ianim_hit.iquad.color = val Color( 255, 255, 255);
+                    ianim_hit.iquad.color = val Color( 255, 255, 255, 255);
                     await FOREVER;
                 with
                     await Animation (&ianim_hit, &ibrat.imov_obj.iaabb.center, &ibrat.imov_obj.iaabb.scale, &ibrat.imov_obj.iaabb.rotate_angle );
                     emit e_stop_state(false);
                     await FOREVER;
                 end
-                ianim_hit.iquad.color = val Color( 255, 255, 255);
+                ianim_hit.iquad.color = val Color( 255, 255, 255, 255);
             else
                 break;
             end
