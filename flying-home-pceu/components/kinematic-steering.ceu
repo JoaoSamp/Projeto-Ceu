@@ -19,13 +19,30 @@ do
 	escape ikinematic;
 end
 
-code/call Kinematic_Update (var& IKinematic_Component ikinematic, var ISteering_Component isteering, var real dt) -> none
+code/call Kinematic_Update_Velocity (var& IKinematic_Component ikinematic, var& ISteering_Component isteering, var real dt) -> none
 do
-	ikinematic.old_position = ikinematic.position;
-	ikinematic.position = call VAdd(ikinematic.position, call VMultSca(ikinematic.velocity, dt/1000.0));
-
 	ikinematic.velocity = call VAdd(ikinematic.velocity, call VMultSca(isteering.linear, dt/1000.0));
 	ikinematic.velocity = call VMultSca(ikinematic.velocity, ikinematic.drag);
+end
+
+code/call Kinematic_Update_Y (var& IKinematic_Component ikinematic, var real dt) -> none
+do
+	ikinematic.old_position.y 	= ikinematic.position.y;
+	var IVector new_position 	= call VAdd(ikinematic.position, call VMultSca(ikinematic.velocity, dt/1000.0));
+	ikinematic.position.y 		= new_position.y;
+end
+
+code/call Kinematic_Update_X (var& IKinematic_Component ikinematic, var real dt) -> none
+do
+	ikinematic.old_position.x 	= ikinematic.position.x;
+	var IVector new_position 	= call VAdd(ikinematic.position, call VMultSca(ikinematic.velocity, dt/1000.0));
+	ikinematic.position.x 		= new_position.x;
+end
+
+code/call Kinematic_Update_Position (var& IKinematic_Component ikinematic, var real dt) -> none
+do
+	call Kinematic_Update_Y(&ikinematic, dt);
+	call Kinematic_Update_X(&ikinematic, dt);
 end
 
 

@@ -25,6 +25,16 @@ data IMoving_Obj with
 	var bool pushed_right_tile 	= false;
 	var bool pushed_left_tile 	= false;
 
+	var bool pushes_top_obj 	= false;
+	var bool pushes_bottom_obj 	= false;
+	var bool pushes_right_obj 	= false;
+	var bool pushes_left_obj 	= false;
+
+	var bool pushed_top_obj 	= false;
+	var bool pushed_bottom_obj 	= false;
+	var bool pushed_right_obj 	= false;
+	var bool pushed_left_obj 	= false;
+
 	var bool destroyed = false;
 end
 
@@ -36,6 +46,8 @@ do
 	var IMoving_Obj imov_obj 				= val IMoving_Obj (aabb, ikinematic, isteering, _,
 																_, _, _, _, 
 																_, _, _, _, 
+																_, _, _, _, 
+																_, _, _, _,
 																_, _, _, _, 
 																_, _, _, _,
 																_);

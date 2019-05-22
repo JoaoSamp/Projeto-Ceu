@@ -5,10 +5,14 @@ data IAABBox with
     var real rotate_angle 	= 0;
 end
 
-
 code/call AABB_Get_Half_Size (var& IAABBox iaabb) -> IVector
 do
 	escape (call VMultVec (iaabb.half_size, call VAbs(iaabb.scale)));
+end
+
+code/call AABB_Get_Size (var& IAABBox iaabb) -> IVector
+do
+	escape ( call VMultSca (call AABB_Get_Half_Size (&iaabb), 2));
 end
 
 code/call Overlaps(var& IAABBox a, var& IAABBox b) -> bool

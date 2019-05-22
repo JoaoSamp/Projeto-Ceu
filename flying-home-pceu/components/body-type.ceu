@@ -1,4 +1,4 @@
-data BType 			as nothing;
-data BType.Nonsolid as 1;
-data BType.Solid 	as 2;
-data BType.Oneway 	as 3;
+data BType;
+data BType.Nonsolid;
+data BType.Solid;
+data BType.Oneway;

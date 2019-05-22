@@ -42,6 +42,13 @@ do
 	escape v;
 end
 
+code/call VRound( var IVector v, var int prec) -> IVector
+do
+	v.x = _round(v.x);
+	v.y = _round(v.y);
+	escape v;
+end
+
 code/call VLength( var IVector v ) -> real
 do
 	var real length = _sqrt((v.x * v.x) + (v.y * v.y));
@@ -57,10 +64,25 @@ do
 	escape u;
 end
 
-code/call Vector_Components ( var IVector start_pos, var IVector target ) -> IVector
+code/call VComponents ( var IVector start_pos, var IVector target ) -> IVector
 do
     var IVector vector = val IVector(target.x - start_pos.x, target.y - start_pos.y);
     var real angle = _atan2(vector.y, vector.x);
     var IVector components = val IVector(_cos(angle), _sin(angle));
     escape components;
+end
+
+code/call VRotation (var IVector v, var real angle) -> IVector
+do
+    var real module = _sqrt((v.x * v.x) + (v.y * v.y));
+    var IVector v_rotated = val IVector(module * _cosf(angle), module * _sinf(angle));
+    escape v_rotated;
+end
+
+code/call VLerp ( var IVector v_end, var IVector v_start, var real perc) -> IVector
+do
+	var IVector v_lerp 	= call VSub(v_end, v_start);
+	v_lerp 				= call VMultSca(v_lerp, perc);
+	v_lerp 				= call VAdd(v_lerp, v_start);
+	escape v_lerp;
 end
