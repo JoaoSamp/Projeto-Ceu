@@ -50,77 +50,141 @@ end
 code/await Player( var& IActor.IPlayer iplayer, pool&[] Actor actors ) -> none
 do
     event bool e_stop_normal_state;
+    event bool e_stop_animation;
     event none e_interrupt_animation;
     
     var IVector sprite_offset       = val IVector(15, 18);
     var IVector spin_offset         = val IVector(15, 15);
     var IVector smash_offset        = val IVector(24, 25);
-    var IVector shooting_offset     = val IVector(18, 26);
+    var IVector cast_offset         = val IVector(18, 26);
     var IVector bullet_offset       = val IVector(23, 24);
 
-    var IAnimation ianim_glide      = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-move-glide.bmp",      sprite_offset, 1), 10);
-    var IAnimation ianim_fly        = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-move-fly.bmp",     sprite_offset, 8), 10);
-    var IAnimation ianim_dive       = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-move-dive.bmp",       sprite_offset, 1), 10);
-    var IAnimation ianim_foward     = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-move-foward.bmp",     sprite_offset, 1), 10);
-    var IAnimation ianim_backward   = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-move-backward.bmp",   sprite_offset, 1), 10);
+    var IAnimation ianim_glide      = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-move-glide.bmp",    sprite_offset, 1), 10);
+    var IAnimation ianim_fly        = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-move-fly.bmp",      sprite_offset, 8), 10);
+    var IAnimation ianim_dive       = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-move-dive.bmp",     sprite_offset, 1), 10);
+    var IAnimation ianim_foward     = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-move-foward.bmp",   sprite_offset, 1), 10);
+    var IAnimation ianim_backward   = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-move-backward.bmp", sprite_offset, 1), 10);
 
-    var IAnimation ianim_cast_start     = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-cast-start.bmp",   sprite_offset, 1), 10);
-    var IAnimation ianim_cast           = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-cast.bmp",   sprite_offset, 1), 10);
-    var IAnimation ianim_cast_end       = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-cast-end.bmp",   sprite_offset, 1), 10);
+    var IAnimation ianim_cast_start     = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-cast-start.bmp",    cast_offset, 4), 12);
+    var IAnimation ianim_cast           = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-cast.bmp",          cast_offset, 1), 12);
+    var IAnimation ianim_cast_end       = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-cast-end.bmp",      cast_offset, 4), 12);
 
-    var IAnimation ianim_smash_start    = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-smash-start.bmp",   sprite_offset, 1), 10);
-    var IAnimation ianim_smash          = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-smash.bmp",   sprite_offset, 1), 10);
-    var IAnimation ianim_smash_end      = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-smash-end.bmp",   sprite_offset, 1), 10);
+    var IAnimation ianim_smash_start    = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-smash-start.bmp",   smash_offset, 3), 12);
+    var IAnimation ianim_smash          = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-smash.bmp",         smash_offset, 2), 12);
+    var IAnimation ianim_smash_end      = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-smash-end.bmp",     smash_offset, 5), 12);
 
-    var int acceleration    = 400;
+    var IAnimation ianim_uppercut_start    = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-uppercut-start.bmp",   smash_offset, 3), 12);
+    var IAnimation ianim_uppercut          = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-uppercut.bmp",         smash_offset, 2), 12);
+    var IAnimation ianim_uppercut_end      = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-uppercut-end.bmp",     smash_offset, 4), 12);
+
+    var IAnimation ianim_spin_start    = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-spin-start.bmp",   spin_offset, 6), 15);
+    var IAnimation ianim_spin          = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-spin.bmp",         spin_offset, 4), 15);
+    var IAnimation ianim_spin_end      = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker-spin-end.bmp",     spin_offset, 4), 12);
+
+    var int acceleration    = 500;
     var int gravity         = 75;
 
     //spawn Status_Effect (&iplayer);
     var IAnimation current_ianim = ianim_glide;
     var IAnimation next_anim = ianim_glide;
     par/or do
-        loop do
-            current_ianim = next_anim;
-            watching e_interrupt_animation do
-                await Animation (&current_ianim, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle );
+        pause/if e_stop_animation do
+            loop do
+                par/or do
+                    loop do
+                        current_ianim = next_anim;
+                        watching e_interrupt_animation do
+                            await Animation (&current_ianim, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle );
+                        end
+                    end
+                with
+                    await resume;
+                end
             end
         end
     with
         var IVector direction = outer.null_vector;
         spawn Player_Input(&direction);
-        loop do
-            iplayer.imov_obj.ikinematic.acceleration.x = acceleration;
-            iplayer.imov_obj.ikinematic.acceleration.y = acceleration;
-            var IVector dir = direction;
-            if dir.x < 0 then
-                next_anim   = ianim_backward;
-            else/if dir.x > 0 then
-                next_anim   = ianim_foward;
-            else
-                next_anim = ianim_glide;
-            end
+        par do
+            loop do
+                iplayer.imov_obj.ikinematic.acceleration.x = acceleration;
+                iplayer.imov_obj.ikinematic.acceleration.y = acceleration;
+                var IVector dir = direction;
+                if dir.x < 0 then
+                    next_anim   = ianim_backward;
+                else/if dir.x > 0 then
+                    next_anim   = ianim_foward;
+                else
+                    next_anim = ianim_glide;
+                end
 
-            if dir.y < 0 then
-                next_anim   = ianim_dive;
-            else/if dir.y > 0 then
-                next_anim   = ianim_fly;
-            else
-                iplayer.imov_obj.ikinematic.acceleration.y = gravity;
-                dir.y = -1;                   
-            end
+                if dir.y < 0 then
+                    next_anim   = ianim_dive;
+                else/if dir.y > 0 then
+                    next_anim   = ianim_fly;
+                else
+                    iplayer.imov_obj.ikinematic.acceleration.y = gravity;
+                    dir.y = -1;                   
+                end
 
-            iplayer.imov_obj.isteering = call Steering_Seek (iplayer.imov_obj.ikinematic, call VAdd( dir, iplayer.imov_obj.iaabb.center));
-
-            par/or do
-                var int key = await KEY_PRESS until (key == outer.key_left
+                iplayer.imov_obj.isteering = call Steering_Seek (iplayer.imov_obj.ikinematic, call VAdd( dir, iplayer.imov_obj.iaabb.center));
+                par/or do
+                    var int key = await KEY_PRESS until (key == outer.key_left
                                                     or key == outer.key_right
                                                     or key == outer.key_down
-                                                    or key == outer.key_up);
-            with
-                var int key = await KEY_UNPRESS until (key == outer.key_left
-                                                    or key == outer.key_right
-                                                    or key == outer.key_down
-                                                    or key == outer.key_up);
+                                                    or key == outer.key_up
+                                                    or key == outer.key_a
+                                                    or key == outer.key_b
+                                                    or key == outer.key_x
+                                                    or key == outer.key_y);
+                with
+                    var int key = await KEY_UNPRESS until (key == outer.key_left
+                                                        or key == outer.key_right
+                                                        or key == outer.key_down
+                                                        or key == outer.key_up);
+                end
+            end
+        with
+            loop do
+                var int key = await KEY_PRESS until (key == outer.key_a
+                                                    or key == outer.key_b
+                                                    or key == outer.key_x
+                                                    or key == outer.key_y);
+
+                emit e_stop_animation(true);
+                if key == outer.key_a then
+                    var bool stop = false;
+                    par/or do
+                        await Animation (&ianim_spin_start, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle );
+                        loop _ in [1 -> 5] do
+                            await Animation (&ianim_spin, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle );
+                            if stop then 
+                                break;
+                            end
+                        end
+                    with
+                        var int key = await KEY_UNPRESS until (key == outer.key_a);
+                        stop = true;
+                        await FOREVER;
+                    end
+                    await Animation (&ianim_spin_end, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle );
+                else/if key == outer.key_b then
+                    if direction.x < 0 then
+                        await Animation (&ianim_uppercut_start, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle );
+                        await Animation (&ianim_uppercut, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle );
+                        await Animation (&ianim_uppercut_end, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle );
+                    else
+                        await Animation (&ianim_smash_start, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle );
+                        await Animation (&ianim_smash, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle );
+                        await Animation (&ianim_smash_end, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle );
+                    end
+                else/if key == outer.key_x then
+                        await Animation (&ianim_cast_start, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle );
+                        await Animation (&ianim_cast, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle );
+                        await Animation (&ianim_cast_end, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle );
+                else/if key == outer.key_y then
+                end
+                emit e_stop_animation(false);
             end
         end
     with
