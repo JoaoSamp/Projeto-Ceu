@@ -4,7 +4,7 @@ data IActor with
     event none destroy;
 end
 
-data ICollision with
+data IHit with
     var bool hit    = false;
     var int type    = 0;
     var int effect  = 0;
@@ -13,9 +13,9 @@ data ICollision with
     var real magnitude = 0;
 end
 
-data IActor_Collision with
-    var ICollision hitman_data;
-    var ICollision target_data;
+data IActor_Hit with
+    var IHit attacker_data;
+    var IHit target_data;
 end
 
 code/call Create_Actor (var IMoving_Obj imov_obj) -> IActor
@@ -29,8 +29,8 @@ do
 
 end
 
-code/call/dynamic Actor_Hit (var&/dynamic IActor ihitman, var&/dynamic IActor itarget) -> IActor_Collision
+code/call/dynamic Actor_Hit (var&/dynamic IActor iattacker, var&/dynamic IActor itarget) -> IActor_Hit
 do
-    var IActor_Collision ia_collision = val IActor_Collision ( ICollision(_, _, _, _, _, _), ICollision(_, _, _, _, _, _) );
-    escape ia_collision;
+    var IActor_Hit ia_hit = val IActor_Hit ( IHit(_, _, _, _, _, _), IHit(_, _, _, _, _, _) );
+    escape ia_hit;
 end

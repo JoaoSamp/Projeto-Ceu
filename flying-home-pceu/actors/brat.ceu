@@ -10,12 +10,12 @@ do
     var IStatus_Component istatus       = call Create_Status_Component (max_life, 0);
 
     var IVector size            = val IVector(8, 10);
-    var IMoving_Obj imov_obj    = call Create_Moving_Obj( start_pos, size);
+    var IMoving_Obj imov_obj    = call Create_Moving_Obj( start_pos, size, BType.Dynamic());
     imov_obj.iboundaries.bound_right        = false;
     imov_obj.ikinematic.drag                = 0.95;
     imov_obj.ikinematic.acceleration        = val IVector ( 300, 300);
 
-    var IActor.IEnemie.IBrat ibrat = val IActor.IEnemie.IBrat ( imov_obj,  _, _, istatus, &itarget);
+    var IActor.IEnemie.IBrat ibrat = val IActor.IEnemie.IBrat ( imov_obj, _, _, istatus, &itarget);
     escape ibrat;
 end
 
@@ -133,4 +133,3 @@ code/await/dynamic Actor ( var&/dynamic IActor.IEnemie.IBrat iactor, pool&[] Act
 do
     await Brat (&iactor);
 end
-

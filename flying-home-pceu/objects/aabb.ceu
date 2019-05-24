@@ -27,3 +27,19 @@ do
 	end
 	escape true;
 end
+
+code/call OverlapsSigned (var& IAABBox a, var& IAABBox b, var& IVector overlap) -> bool
+do
+	overlap = val IVector(0, 0);
+	var IVector a_half_size = call AABB_Get_Half_Size(&a);
+	var IVector b_half_size = call AABB_Get_Half_Size(&b);
+	if (a_half_size.x == 0) or (a_half_size.y == 0) or (b_half_size.x == 0) or (b_half_size.y == 0) 
+		or ( _fabs( a.center.x - b.center.x) > a_half_size.x + b_half_size.x )
+		or ( _fabs( a.center.y - b.center.y) > a_half_size.y + b_half_size.y ) then
+		escape false;
+	end
+
+	overlap = val IVector( call Signed( a.center.x - b.center.x ) * ( (a_half_size.x + b_half_size.x) - _fabs( a.center.x - b.center.x) ),
+						   call Signed( a.center.y - b.center.y ) * ( (a_half_size.y + b_half_size.y) - _fabs( a.center.y - b.center.y) ) );
+	escape true;
+end

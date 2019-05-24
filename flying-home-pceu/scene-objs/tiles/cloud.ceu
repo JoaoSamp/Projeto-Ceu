@@ -2,8 +2,8 @@ data ITile_Manager.ICloud;
 
 code/call Create_Cloud_Data (var& IMap imap, var int id) -> ITile_Manager.ICloud
 do
-	var IVector size = val IVector (32, 32);
-	var ITile_Manager.ICloud icloud = val ITile_Manager.ICloud (&imap, BType.Nonsolid(), size, id, _, _);
+	var IVector size = val IVector (28, 28);
+	var ITile_Manager.ICloud icloud = val ITile_Manager.ICloud (&imap, ETile_Type.Nonsolid(), size, id, _, _);
 	escape icloud;	
 end
 

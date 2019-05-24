@@ -9,7 +9,7 @@ do
     // Create a background data with quad(image) and speed 
     var IVector velocity            = val IVector (-15, 0);
     var IVector position            = call Camera_Get_Position();
-    var IMoving_Obj imov_obj        = call Create_Moving_Obj( position, size);
+    var IMoving_Obj imov_obj        = call Create_Moving_Obj( position, size, BType.Kinematic());
 
     var IBackground ibg_sky_one     = call Create_Background( &iquad, imov_obj, velocity);
 

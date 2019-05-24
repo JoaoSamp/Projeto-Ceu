@@ -15,7 +15,7 @@ do
         IVector(0,16),
         IVector (300, 5),
         IVector (32, 32),
-        IVector (60, 0),
+        IVector (0, 0),
         &tiles);
 
 
@@ -46,9 +46,10 @@ do
         var real dt;
         every dt in FRAMES_UPDATE do
             call Camera_Update(dt);
+            await Update_Actors_Tile_Collision( &scene_actors, &scene_tiles, &imap, dt);
+            await Update_Actors_Actor_Collision( &scene_actors);
         end
     with
-        spawn Update_Actors( &scene_actors, &scene_tiles, &imap);
         var IActor.IEnemie.IBrat ibrat = call Create_Brat ( &iplayer );
         spawn Actor( &ibrat, &scene_actors ) in scene_actors;
         await FOREVER;

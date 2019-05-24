@@ -25,7 +25,7 @@ emit FRAMES_SET(yes);
 	#include "objects/vector.ceu"
 	
 	// components
-	#include "components/body-type.ceu"
+	#include "components/types.ceu"
 	#include "components/boundaries.ceu"
 	#include "components/kinematic-steering.ceu"
 

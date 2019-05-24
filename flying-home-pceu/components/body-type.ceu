@@ -1,4 +1,0 @@
-data BType;
-data BType.Nonsolid;
-data BType.Solid;
-data BType.Oneway;

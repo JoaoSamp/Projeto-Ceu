@@ -3,6 +3,7 @@ data IMoving_Obj with
 	var IKinematic_Component ikinematic;
 	var ISteering_Component isteering;
 
+	var BType body_type;
 	var IBoundaries iboundaries = val IBoundaries( _, _, _, _);
 
 	var bool pushes_top 	= false;
@@ -38,12 +39,12 @@ data IMoving_Obj with
 	var bool destroyed = false;
 end
 
-code/call Create_Moving_Obj ( var IVector position, var IVector size) -> IMoving_Obj
+code/call Create_Moving_Obj ( var IVector position, var IVector size, var BType body_type) -> IMoving_Obj
 do
-	var IAABBox aabb 						= val IAABBox(position, call VDivSca(size, 2), _, _);
+	var IAABBox iaabb 						= val IAABBox(position, call VDivSca(size, 2), _, _);
 	var IKinematic_Component ikinematic 	= call Create_Kinematic_Component ( position );
 	var ISteering_Component isteering 		= val ISteering_Component(_, _);
-	var IMoving_Obj imov_obj 				= val IMoving_Obj (aabb, ikinematic, isteering, _,
+	var IMoving_Obj imov_obj 				= val IMoving_Obj (iaabb, ikinematic, isteering, body_type, _,
 																_, _, _, _, 
 																_, _, _, _, 
 																_, _, _, _, 

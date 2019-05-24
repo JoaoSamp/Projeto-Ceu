@@ -1,6 +1,6 @@
 data ITile_Manager with
 	var& IMap imap;
-	var BType body_type;
+	var ETile_Type type;
 	var IVector size = val IVector (0, 0);
 	var int id;
 	event int collision;

@@ -3,7 +3,7 @@ data ITile_Manager.IRing;
 code/call Create_Ring_Data (var& IMap imap, var int id) -> ITile_Manager.IRing
 do
 	var IVector size = val IVector (10, 22);
-	var ITile_Manager.IRing iring = val ITile_Manager.IRing (&imap, BType.Nonsolid(), size, id, _, _);
+	var ITile_Manager.IRing iring = val ITile_Manager.IRing (&imap, ETile_Type.Nonsolid(), size, id, _, _);
 	escape iring;	
 end
 

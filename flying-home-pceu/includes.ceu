@@ -9,12 +9,10 @@ data IActor;
 data IActor.IEnemie;
 data IActor.IEnemie.IBrat;
 data IActor.IPlayer;
-data IActor.IToxic_Quail;
-data IActor.IPoison_Bomb;
 data ITile_Manager;
 data ITile_Manager.ICloud;
 data ITile_Manager.IRing;
-data ITile_Manager.IPoison_Cloud;
+data ICollision;
 
 code/call Signed (var real value) -> int
 do

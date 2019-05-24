@@ -5,7 +5,7 @@ end
 code/call Create_Magic_fr_ball (var IVector start_pos, var& IActor icaster ) -> IActor.IFire_Ball
 do
     var IVector size                = val IVector(6, 6);
-    var IMoving_Obj imov_obj        = call Create_Moving_Obj( start_pos, size);
+    var IMoving_Obj imov_obj        = call Create_Moving_Obj( start_pos, size, BType.Trigger());
     imov_obj.ikinematic.drag        = 1;
     imov_obj.ikinematic.velocity    = val IVector (200, 0);
     imov_obj.iboundaries        = call Create_Unbound();
@@ -44,15 +44,6 @@ end
 code/await/dynamic Actor ( var&/dynamic IActor.IFire_Ball iactor, pool&[] Actor actors) -> none
 do
     await Fire_Ball (&iactor, &actors);
-end
-
-
-code/call/dynamic Actor_Hit (var&/dynamic IActor.IFire_Ball ihitman, var&/dynamic IActor.IEnemie.IBrat itarget) -> IActor_Collision
-do
-	var ICollision coll_hitman         = val ICollision ( _, _, _, _, _ );
-	var ICollision coll_target         = val ICollision ( _, _, _, _, _ );
-    var IActor_Collision ia_collision  = val IActor_Collision ( coll_hitman, coll_target );
-    escape ia_collision;
 end
 
 code/await Fire_Ball ( var& IActor icaster, pool&[] Actor actors, var IVector start_pos ) -> none

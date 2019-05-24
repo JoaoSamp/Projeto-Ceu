@@ -7,10 +7,10 @@ do
     var IStatus_Component istatus      = call Create_Status_Component (max_life, max_mana);
 
     var IVector size            = val IVector(10, 12);
-    var IMoving_Obj imov_obj     = call Create_Moving_Obj( start_pos, size);
+    var IMoving_Obj imov_obj     = call Create_Moving_Obj( start_pos, size, BType.Dynamic());
     imov_obj.ikinematic.drag = 0.95;
 
-    var IActor.IPlayer iplayer = val IActor.IPlayer ( imov_obj,  _, _, istatus);
+    var IActor.IPlayer iplayer = val IActor.IPlayer ( imov_obj, _, _, istatus);
     escape iplayer;
 end
 
