@@ -1,0 +1,335 @@
+code/call Create_Player (var IVector start_pos, var int max_life, var int max_mana ) -> IActor.IPlayer
+do
+    var IStatus_Component istatus      = call Create_Status_Component (max_life, max_mana);
+
+    var IVector size            = val IVector(10, 12);
+    var IMoving_Obj imov_obj     = call Create_Moving_Obj( start_pos, size, EType.Dynamic());
+    imov_obj.ikinematic.drag = 0.95;
+
+    var IActor.IPlayer iplayer = val IActor.IPlayer ( call Actor_Id_Generator(), imov_obj, istatus, _, _, _);
+    escape iplayer;
+end
+
+code/await Player_Input(var& IVector direction) -> NEVER 
+do
+    par do
+        loop do
+            var int key = await KEY_PRESS until key == outer.key_left;
+            direction.x    = direction.x - 1;
+            var int key = await KEY_UNPRESS until key == outer.key_left;
+            direction.x    = direction.x + 1;
+        end
+    with
+        loop do
+            var int key = await KEY_PRESS until key == outer.key_right;
+            direction.x    = direction.x + 1;
+            var int key = await KEY_UNPRESS until key == outer.key_right;
+            direction.x    = direction.x - 1;
+        end
+    with
+        loop do
+            var int key = await KEY_PRESS until key == outer.key_up;
+            direction.y    = direction.y + 1;
+            var int key = await KEY_UNPRESS until key == outer.key_up;
+            direction.y    = direction.y - 1;
+        end
+    with
+        loop do
+            var int key = await KEY_PRESS until key == outer.key_down;
+            direction.y    = direction.y - 1;
+            var int key = await KEY_UNPRESS until key == outer.key_down;
+            direction.y    = direction.y + 1;
+        end
+    end
+end
+
+code/await Player( var& IActor.IPlayer iplayer, pool&[] Actor actors, pool&[] Tile tiles ) -> none
+do
+    event bool e_stop_movement;
+    event bool e_stop_animation;
+    event none e_interrupt_animation;
+    
+    var IVector sprite_offset       = val IVector(15, 18);
+    var IVector spin_offset         = val IVector(15, 15);
+    var IVector smash_offset        = val IVector(24, 25);
+    var IVector cast_offset         = val IVector(18, 26);
+    var IVector bullet_offset       = val IVector(23, 24);
+    var IVector punch_offset        = val IVector(23, 26);
+
+    var IAnimation ianim_glide      = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-move-glide.bmp",    sprite_offset, 1), 10);
+    var IAnimation ianim_fly        = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-move-fly.bmp",      sprite_offset, 8), 10);
+    var IAnimation ianim_dive       = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-move-dive.bmp",     sprite_offset, 1), 10);
+    var IAnimation ianim_foward     = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-move-foward.bmp",   sprite_offset, 1), 10);
+    var IAnimation ianim_backward   = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-move-backward.bmp", sprite_offset, 1), 10);
+
+    var IAnimation ianim_cast_start     = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-cast-start.bmp",    cast_offset, 4), 12);
+    var IAnimation ianim_cast           = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-cast.bmp",          cast_offset, 1), 12);
+    var IAnimation ianim_cast_end       = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-cast-end.bmp",      cast_offset, 4), 12);
+
+    var IAnimation ianim_smash_start    = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-smash-start.bmp",   smash_offset, 3), 12);
+    var IAnimation ianim_smash          = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-smash.bmp",         smash_offset, 1), 12);
+    var IAnimation ianim_smash2         = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-smash2.bmp",        smash_offset, 1), 12);
+    var IAnimation ianim_smash_end      = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-smash-end.bmp",     smash_offset, 4), 12);
+
+    var IAnimation ianim_uppercut_start    = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-uppercut-start.bmp",   smash_offset, 3), 12);
+    var IAnimation ianim_uppercut          = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-uppercut.bmp",         smash_offset, 1), 12);
+    var IAnimation ianim_uppercut2         = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-uppercut2.bmp",         smash_offset, 1), 12);
+    var IAnimation ianim_uppercut_end      = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-uppercut-end.bmp",     smash_offset, 4), 12);
+
+    var IAnimation ianim_spin_start    = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-spin-start.bmp",   spin_offset, 6), 15);
+    var IAnimation ianim_spin          = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-spin.bmp",         spin_offset, 4), 15);
+    var IAnimation ianim_spin_end      = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-spin-end.bmp",     spin_offset, 4), 12);
+
+    var IAnimation ianim_fpunch_start    = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-first-punch-start.bmp",   punch_offset, 5), 18);
+    var IAnimation ianim_fpunch          = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-first-punch.bmp",         punch_offset, 2), 18);
+    var IAnimation ianim_fpunch_end      = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-first-punch-end.bmp",     punch_offset, 3), 18);
+
+    var IAnimation ianim_spunch_start    = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-sec-punch-start.bmp",   punch_offset, 3), 18);
+    var IAnimation ianim_spunch          = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-sec-punch.bmp",         punch_offset, 2), 18);
+    var IAnimation ianim_spunch_end      = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-sec-punch-end.bmp",     punch_offset, 3), 18);
+
+    var IAnimation ianim_stace_switch    = val IAnimation( call Create_Image_Quad( "assets/img/actors/walker/walker-stance-switch.bmp", punch_offset, 1), 12);
+
+    var int acceleration    = 350;
+
+    //spawn Status_Effect (&iplayer);
+    var[] uint actors_ids           = [iplayer.id];
+    var[] uint tiles_ids            = [0];
+    var int intangible_time         = 1500;
+    var int blink_time              = 100;
+    var IAnimation current_ianim    = ianim_glide;
+    var IAnimation next_anim        = ianim_glide;
+
+    code/await Smash_Attack (none)-> none
+    do 
+        await Animation (&outer.ianim_smash_start, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter );
+        outer.actors_ids           = [outer.iplayer.id];
+        outer.tiles_ids            = [0];
+        watching Animation (&outer.ianim_smash, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter ) do
+            var IHitbox ihitbox = call Create_Smash_Hitbox ( &outer.iplayer, &outer.actors_ids, &outer.actors, &outer.tiles_ids, &outer.tiles);
+            await Hitbox(&ihitbox);
+        end
+        watching Animation (&outer.ianim_smash2, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter ) do
+            var IHitbox ihitbox = call Create_Smash_Hitbox2 ( &outer.iplayer, &outer.actors_ids, &outer.actors, &outer.tiles_ids, &outer.tiles);
+            await Hitbox(&ihitbox);
+        end
+        await Animation (&outer.ianim_smash_end, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter );
+    end
+
+    code/await Jab_Attack (none) -> none
+    do
+        outer.actors_ids            = [outer.iplayer.id];
+        outer.tiles_ids             = [0];
+        await Animation (&outer.ianim_fpunch_start, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter );
+        watching Animation (&outer.ianim_fpunch, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter ) do
+            var IHitbox ihitbox     = call Create_Jab_Hitbox ( &outer.iplayer, &outer.actors_ids, &outer.actors, &outer.tiles_ids, &outer.tiles);
+            await Hitbox(&ihitbox);
+        end
+        await Animation (&outer.ianim_fpunch_end, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter );
+    end
+
+    code/await Cross_Attack (none) -> none
+    do
+        outer.actors_ids            = [outer.iplayer.id];
+        outer.tiles_ids             = [0];
+        await Animation (&outer.ianim_spunch_start, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter );
+        watching Animation (&outer.ianim_spunch, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter ) do
+            var IHitbox ihitbox     = call Create_Cross_Hitbox ( &outer.iplayer, &outer.actors_ids, &outer.actors, &outer.tiles_ids, &outer.tiles);
+            await Hitbox(&ihitbox);
+        end
+        await Animation (&outer.ianim_spunch_end, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter );
+    end
+
+    code/await Uppercut_Attack (none)-> none
+    do 
+        await Animation (&outer.ianim_uppercut_start, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter );
+        outer.actors_ids           = [outer.iplayer.id];
+        outer.tiles_ids            = [0];
+        watching Animation (&outer.ianim_uppercut, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter ) do
+            var IHitbox ihitbox     = call Create_Uppercut_Hitbox ( &outer.iplayer, &outer.actors_ids, &outer.actors, &outer.tiles_ids, &outer.tiles);
+            await Hitbox(&ihitbox);
+        end
+        watching Animation (&outer.ianim_uppercut2, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter ) do
+            var IHitbox ihitbox     = call Create_Uppercut_Hitbox2 ( &outer.iplayer, &outer.actors_ids, &outer.actors, &outer.tiles_ids, &outer.tiles);
+            await Hitbox(&ihitbox);
+        end
+        await Animation (&outer.ianim_uppercut_end, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter );
+    end
+
+    code/await Spin_Attack (none) -> none
+    do
+        event none first_animation;
+        par/or do
+            await Animation (&outer.ianim_spin_start, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter );
+            var int i;
+            loop i in [1 -> 5] do
+                outer.actors_ids           = [outer.iplayer.id];
+                outer.tiles_ids            = [0];
+                watching Animation (&outer.ianim_spin, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter ) do
+                    var IHitbox ihitbox     = call Create_Spin_Hitbox ( &outer.iplayer, &outer.actors_ids, &outer.actors, &outer.tiles_ids, &outer.tiles);
+                    var IHitbox ihitbox2     = call Create_Spin_Hitbox2 ( &outer.iplayer, &outer.actors_ids, &outer.actors, &outer.tiles_ids, &outer.tiles);
+                    spawn Hitbox(&ihitbox2);
+                    await Hitbox(&ihitbox);
+                end
+                if i == 1 then
+                    emit first_animation;
+                end
+            end
+        with
+            par/and do
+                await first_animation;
+            with
+                var int key = await KEY_UNPRESS until (key == outer.key_a);
+            end
+        end
+        await Animation (&outer.ianim_spin_end, &outer.iplayer.imov_obj.iaabb.center, &outer.iplayer.imov_obj.iaabb.scale, &outer.iplayer.imov_obj.iaabb.rotate_angle, &outer.iplayer.filter );
+    end
+
+    par/or do
+        pause/if e_stop_animation do
+            loop do
+                par/or do
+                    loop do
+                        current_ianim = next_anim;
+                        watching e_interrupt_animation do
+                            await Animation (&current_ianim, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle, &iplayer.filter );
+                        end
+                    end
+                with
+                    await resume;
+                end
+            end
+        end
+    with
+        var IVector direction = outer.null_vector;
+        spawn Player_Input(&direction);
+        par do
+            loop do
+                pause/if e_stop_movement do
+                    par/or do
+                        iplayer.imov_obj.ikinematic.acceleration.x = acceleration;
+                        iplayer.imov_obj.ikinematic.acceleration.y = acceleration;
+                        var IVector dir = direction;
+                        if dir.x < 0 then
+                            next_anim   = ianim_backward;
+                        else/if dir.x > 0 then
+                            next_anim   = ianim_foward;
+                        else
+                            next_anim = ianim_glide;
+                        end
+
+                        if dir.y < 0 then
+                            next_anim   = ianim_dive;
+                        else/if dir.y > 0 then
+                            next_anim   = ianim_fly;
+                        else
+                            iplayer.imov_obj.ikinematic.acceleration.y = outer.gravity;
+                            dir.y = -1;                   
+                        end
+
+                        iplayer.imov_obj.isteering = call Steering_Seek (iplayer.imov_obj.ikinematic, call VAdd( dir, iplayer.imov_obj.ikinematic.position));
+                        par/or do
+                            var int key = await KEY_PRESS until (key == outer.key_left
+                                                            or key == outer.key_right
+                                                            or key == outer.key_down
+                                                            or key == outer.key_up);
+                        with
+                            var int key = await KEY_UNPRESS until (key == outer.key_left
+                                                                or key == outer.key_right
+                                                                or key == outer.key_down
+                                                                or key == outer.key_up);
+                        end
+                    with
+                        await resume;
+                    end
+                end
+            end
+        with
+            loop do                
+                var int key = await KEY_PRESS until (key == outer.key_a
+                                                    or key == outer.key_b
+                                                    or key == outer.key_x
+                                                    or key == outer.key_y);
+                emit e_stop_animation(true);
+                if key == outer.key_a then
+                    await Spin_Attack();
+                else/if key == outer.key_b then
+                    if direction.x < 0 then
+                        await Uppercut_Attack();
+                    else/if direction.y < 0 then
+                        await Smash_Attack();
+                    else
+                        var bool combo = false;
+                        par/or do
+                            await Jab_Attack();
+                        with
+                            key = await KEY_PRESS until (key == outer.key_b);
+                            combo = true;
+                            await FOREVER;
+                        end
+                        if combo then
+                            combo = false;
+                            par/or do
+                                await Cross_Attack();
+                            with
+                                key = await KEY_PRESS until (key == outer.key_b);
+                                combo = true;
+                                await FOREVER;
+                            end
+                            if combo then
+                                if direction.x < 0 then
+                                    await Uppercut_Attack();
+                                else
+                                    await Smash_Attack();
+                                end
+                            else
+                                await Animation (&ianim_stace_switch, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle, &iplayer.filter );
+                            end
+                        else
+                            await Animation (&ianim_stace_switch, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle, &iplayer.filter );
+                        end
+                    end
+                else/if key == outer.key_x then
+                        await Animation (&ianim_cast_start, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle, &iplayer.filter );
+                        await Animation (&ianim_cast, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle, &iplayer.filter );
+                        await Animation (&ianim_cast_end, &iplayer.imov_obj.iaabb.center, &iplayer.imov_obj.iaabb.scale, &iplayer.imov_obj.iaabb.rotate_angle, &iplayer.filter );
+                else/if key == outer.key_y then
+                end
+                emit e_stop_animation(false);
+                emit e_stop_movement(false);
+            end
+        end
+    with
+        loop do
+            var IHit ihit = call Create_Hit();
+            (ihit.hit, ihit.type, ihit.effect, ihit.damage, ihit.angle, ihit.magnitude) = await iplayer.hit until ihit.hit == true;
+            call Change_Life (&iplayer.istatus, ihit.damage);
+            if iplayer.istatus.current_life == 0 then
+                emit iplayer.destroy;
+            end
+            if ihit.damage < 0 then
+                iplayer.imov_obj.body_type = val EType.Intangible();
+                watching (intangible_time)ms do
+                    loop do
+                        await (blink_time)ms;
+                        iplayer.filter.a = 0;
+                        await (blink_time)ms;
+                        iplayer.filter.a = 255;
+                    end
+                end
+                iplayer.filter.a = 255;
+                iplayer.imov_obj.body_type = val EType.Dynamic();
+            end
+        end
+    with
+        every FRAMES_UPDATE do
+        end
+    with
+        await iplayer.destroy;
+    end
+end
+
+code/await/dynamic Actor ( var&/dynamic IActor.IPlayer iactor, pool&[] Actor actors, pool&[] Tile tiles ) -> none
+do
+    await Player (&iactor, &actors, &tiles);
+end

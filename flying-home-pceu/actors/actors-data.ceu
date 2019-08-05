@@ -1,0 +1,30 @@
+data IActor with
+    var uint id;
+    var IMoving_Obj imov_obj;
+    var IStatus_Component istatus;
+    var Color filter = val Color( 255, 255, 255, 255 );
+    event (bool, int, int, int, real, real) hit;
+    event none destroy;
+end
+
+data IHit with
+    var bool hit    = false;
+    var int type    = 0;
+    var int effect  = 0;
+    var int damage  = 0;
+    var real angle  = 0;
+    var real magnitude = 0;
+end
+
+data IActor_Hit with
+    var IHit actor_data;
+    var IHit target_data;
+end
+
+data IActor.IPlayer;
+
+data IActor.IEnemie;
+
+data IActor.IEnemie.IBrat with
+    var& IActor itarget;
+end;

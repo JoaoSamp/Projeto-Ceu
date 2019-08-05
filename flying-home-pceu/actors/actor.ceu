@@ -1,36 +1,36 @@
-data IActor with
-    var IMoving_Obj imov_obj;
-    event (bool, int, int, int, real, real) hit;
-    event none destroy;
+var uint actor_id = 0;
+
+code/call Actor_Id_Generator (none) -> uint
+do
+    outer.actor_id = outer.actor_id + 1;
+    escape outer.actor_id;
 end
 
-data IHit with
-    var bool hit    = false;
-    var int type    = 0;
-    var int effect  = 0;
-    var int damage  = 0;
-    var real angle  = 0;
-    var real magnitude = 0;
-end
-
-data IActor_Hit with
-    var IHit attacker_data;
-    var IHit target_data;
+code/call Create_Hit(none) -> IHit
+do
+    var IHit ihit = val IHit( _, _, _, _, _, _);
+    escape ihit;
 end
 
 code/call Create_Actor (var IMoving_Obj imov_obj) -> IActor
 do
-    var IActor iactor = val IActor( imov_obj, _, _ );
+    var IStatus_Component istatus = val IStatus_Component (_, _, _, _, _, _, _);
+    var IActor iactor = val IActor(  call Actor_Id_Generator(), imov_obj, istatus, _, _, _ );
     escape iactor;
 end
-
-code/await/dynamic Actor ( var&/dynamic IActor iactor, pool&[] Actor actors) -> none
+ 
+code/await/dynamic Actor ( var&/dynamic IActor iactor, pool&[] Actor actors, pool&[] Tile tiles) -> none
 do
 
 end
 
-code/call/dynamic Actor_Hit (var&/dynamic IActor iattacker, var&/dynamic IActor itarget) -> IActor_Hit
+code/call Actor_Can_Be_Hit (var&[] uint ids, var uint id) -> bool
 do
-    var IActor_Hit ia_hit = val IActor_Hit ( IHit(_, _, _, _, _, _), IHit(_, _, _, _, _, _) );
-    escape ia_hit;
+    var int i;
+    loop i in [0 -> ($ids as int) - 1] do
+        if id == ids[i] then
+            escape false;
+        end
+    end
+    escape true;
 end

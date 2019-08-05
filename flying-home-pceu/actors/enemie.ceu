@@ -1,1 +1,5 @@
-data IActor.IEnemie;
+code/call/dynamic Actor_Hit (var&/dynamic IActor.IEnemie iactor, var&/dynamic IActor itarget) -> IActor_Hit
+do
+    var IActor_Hit ia_hit = val IActor_Hit ( call Create_Hit(), call Create_Hit() );
+    escape ia_hit;
+end

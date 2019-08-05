@@ -17,27 +17,28 @@ do
     escape (color_a.r == color_b.r and color_a.g == color_b.g and color_a.b == color_b.b);
 end
 
-code/await Color_Transition_Ms( var& Color color, var Color end_color, var int time) -> none
-do
-    var real r          = color.r;
-    var real r_sign     = call Signed( end_color.r - r);
-    var real r_delta    = _fabs(end_color.r - r);
-    var real g          = color.g;
-    var real g_sign     = call Signed( end_color.g - g);
-    var real g_delta    = _fabs(end_color.g - g);
-    var real b          = color.b;
-    var real b_sign     = call Signed( end_color.b - b);
-    var real b_delta    = _fabs(end_color.b - b);
-    var int steps       = _fmax(_fmax( _fmax( r_delta, g_delta ), b_delta ), 1);
-    loop _ in [0 -> steps[ do
-        r = r + (r_sign * ( r_delta / steps) );
-        g = g + (g_sign * ( g_delta / steps) );
-        b = b + (b_sign * ( b_delta / steps) );
-        color = val Color( r as int, g as int, b as int, color.a );
-        await (time/steps)ms;
-    end
-    color = end_color;
-end
+// High cost
+// code/await Color_Transition_MS( var& Color color, var Color end_color, var int time) -> none
+// do
+//     var real r          = color.r;
+//     var real r_sign     = call Signed( end_color.r - r);
+//     var real r_delta    = _fabs(end_color.r - r);
+//     var real g          = color.g;
+//     var real g_sign     = call Signed( end_color.g - g);
+//     var real g_delta    = _fabs(end_color.g - g);
+//     var real b          = color.b;
+//     var real b_sign     = call Signed( end_color.b - b);
+//     var real b_delta    = _fabs(end_color.b - b);
+//     var int steps       = _fmax(_fmax( _fmax( r_delta, g_delta ), b_delta ), 1);
+//     loop _ in [0 -> steps[ do
+//         r = r + (r_sign * ( r_delta / steps) );
+//         g = g + (g_sign * ( g_delta / steps) );
+//         b = b + (b_sign * ( b_delta / steps) );
+//         color = val Color( r as int, g as int, b as int, color.a );
+//         await (time/steps)ms;
+//     end
+//     color = end_color;
+// end
 
 code/await Color_Transition_S( var& Color color, var Color end_color, var int time) -> none
 do

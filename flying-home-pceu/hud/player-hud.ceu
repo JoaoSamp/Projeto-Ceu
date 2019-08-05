@@ -1,0 +1,101 @@
+code/await Player_HUD ( var& IActor.IPlayer iplayer ) -> NEVER
+do
+    var IVector hud_scale           = val IVector (0.6, 0.6);
+    var IVector card_offset         = val IVector (64, 32);
+    var IVector heart_offset        = val IVector (28, 28);
+    var IVector mana_offset         = val IVector (64, 44);
+    var IVector numbers_offset      = val IVector (6, 8);
+    var IVector numbers_position    = val IVector (50, 25);
+    var IVector numbers_scale       = val IVector (1, 1);
+    var IImage_Quad card_iq         = call Create_Image_Quad( "assets/img/hud/card.bmp",    card_offset, 1);
+    var IImage_Quad heart_iq        = call Create_Image_Quad( "assets/img/hud/heart.bmp",    heart_offset, 1);
+    var IImage_Quad life_iq         = call Create_Image_Quad( "assets/img/hud/life.bmp",    heart_offset, 1);
+    var IImage_Quad manabar_iq      = call Create_Image_Quad( "assets/img/hud/manabar.bmp",    mana_offset, 1);
+    var IImage_Quad mana_iq         = call Create_Image_Quad( "assets/img/hud/mana.bmp",    mana_offset, 1);
+    var IImage_Quad numbers_iq     = call Create_Image_Quad( "assets/img/hud/numbers.bmp",    numbers_offset, 10);
+
+
+    var int draw_life               = iplayer.istatus.current_life;
+    par do
+        every FRAMES_REDRAW do
+            var Color filter = val Color(105, 200, 150, 255);
+            var IVector camera_bound_x  = call Camera_Get_Boundaries_X();
+            var IVector camera_bound_y  = call Camera_Get_Boundaries_Y();
+            var IVector hud_position    = call VAdd (IVector(camera_bound_x.x, camera_bound_y.x), IVector(10, 4));
+            
+            var IVector draw_position   = call VAdd( hud_position, call VMultVec(IVector(card_offset.x, -card_offset.y), hud_scale) );
+            call Draw_Image( &card_iq, draw_position.x, draw_position.y, hud_scale.x, hud_scale.y, card_iq.offset.x, card_iq.offset.y, 0, filter );
+
+            filter = val Color (255, 255, 255, 255);
+            draw_position   = call VAdd( hud_position, call VMultVec(IVector(heart_offset.x, -heart_offset.y), hud_scale) );
+            call Draw_Image( &heart_iq, draw_position.x, draw_position.y, hud_scale.x, hud_scale.y, heart_iq.offset.x, heart_iq.offset.y, 0, filter );
+
+            var real scale = (draw_life as real) / (iplayer.istatus.max_life as real);
+            var IVector life_scale = val IVector(scale * hud_scale.x, scale * hud_scale.y);
+            draw_position   = call VAdd( hud_position, call VMultVec(IVector(heart_offset.x, -heart_offset.y), hud_scale) );
+            call Draw_Image( &life_iq, draw_position.x, draw_position.y, life_scale.x, life_scale.y, life_iq.offset.x, life_iq.offset.y, 0, filter );
+
+            draw_position   = call VAdd( hud_position, call VMultVec(IVector(mana_offset.x, -mana_offset.y), hud_scale) );
+            call Draw_Image( &manabar_iq, draw_position.x, draw_position.y, hud_scale.x, hud_scale.y, manabar_iq.offset.x, manabar_iq.offset.y, 0, filter );
+
+            draw_position   = call VAdd( hud_position, call VMultVec(IVector(mana_offset.x, -mana_offset.y), hud_scale) );
+            call Draw_Image( &mana_iq, draw_position.x, draw_position.y, hud_scale.x, hud_scale.y, mana_iq.offset.x, mana_iq.offset.y, 0, filter );
+
+            draw_position           = call VAdd( hud_position, call VMultVec(IVector(numbers_position.x, -numbers_position.y), hud_scale) );
+            var int draw_number     = 0;
+            var bool can_draw_zero  = false;
+            var int i;
+            var int life = draw_life;
+            loop i in [0 <- 2] do
+                var int unit            = _pow(10, i);
+                draw_number             = life % unit;
+                draw_number             = (life - draw_number) / unit;
+                life                    = life - (draw_number * unit);
+                numbers_iq.draw_frame   = draw_number;
+                can_draw_zero = (draw_number != 0) or can_draw_zero;
+                if can_draw_zero or (draw_number != 0) then
+                    call Draw_Image( &numbers_iq, draw_position.x, draw_position.y, hud_scale.x * numbers_scale.x, hud_scale.y * numbers_scale.y, numbers_iq.offset.x, numbers_iq.offset.y, 0, filter );
+                    draw_position = call VAdd(draw_position, call VMultVec(IVector(numbers_offset.x * 2 * numbers_scale.x, 0), hud_scale));
+                end
+                unit = unit / 10;
+                if unit == 0 then
+                    break;
+                end
+            end
+            end
+    with
+        loop do
+            await iplayer.hit;
+            loop _ in [1->2] do
+                numbers_scale = call VAdd (numbers_scale, IVector(0.1, 0.1));
+                await 50ms;
+            end
+            loop _ in [1->4] do
+                numbers_scale = call VSub (numbers_scale, IVector(0.05, 0.05));
+                await 50ms;
+            end
+        end
+    with
+        loop do
+            await iplayer.hit;
+            loop do
+                await 100ms;
+                if draw_life < iplayer.istatus.current_life then
+                    if draw_life < iplayer.istatus.current_life - 1 then
+                        draw_life = draw_life + 2;
+                    else
+                        draw_life = draw_life + 1;
+                    end
+                else/if draw_life > iplayer.istatus.current_life then
+                    if draw_life > iplayer.istatus.current_life + 1 then
+                        draw_life = draw_life - 2;
+                    else
+                        draw_life = draw_life - 1;
+                    end
+                else
+                    break;
+                end
+            end
+        end
+    end
+end

@@ -7,9 +7,9 @@ do
     var IImage_Quad iquad       = call Create_Image_Quad("assets/img/background/sky-bg.bmp", offset, 1);
     
     // Create a background data with quad(image) and speed 
-    var IVector velocity            = val IVector (-15, 0);
+    var IVector velocity            = val IVector (10, 0);
     var IVector position            = call Camera_Get_Position();
-    var IMoving_Obj imov_obj        = call Create_Moving_Obj( position, size, BType.Kinematic());
+    var IMoving_Obj imov_obj        = call Create_Moving_Obj( position, size, EType.Kinematic());
 
     var IBackground ibg_sky_one     = call Create_Background( &iquad, imov_obj, velocity);
 
@@ -41,10 +41,10 @@ do
             ibg_sky_two.imov_obj.ikinematic.position.x  = ibg_sky_two.imov_obj.ikinematic.position.x + (true_size.x * 2);
         end
     with
-        await Color_Transition_S( &bg_color, bs2_color, 30);
-        await Color_Transition_S( &bg_color, sunset_color, 45);
-        await Color_Transition_S( &bg_color, sunset2_color, 30);
-        await Color_Transition_S( &bg_color, night_color, 30);
+        await Color_Transition_S( &bg_color, bs2_color, 60);
+        await Color_Transition_S( &bg_color, sunset_color, 90);
+        await Color_Transition_S( &bg_color, sunset2_color, 60);
+        await Color_Transition_S( &bg_color, night_color, 60);
     with
         every FRAMES_REDRAW do
             emit WINDOW_SET_CLEAR_COLOR_RGB(bg_color.r, bg_color.g, bg_color.b);

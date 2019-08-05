@@ -1,0 +1,159 @@
+code/call Create_Brat (var& IActor itarget ) -> IActor.IEnemie.IBrat
+do
+    var int max_life = 15;
+    var IVector start_pos               = val IVector(160, 100);
+    var IStatus_Component istatus       = call Create_Status_Component (max_life, 0);
+
+    var IVector size            = val IVector(10, 12);
+    var IMoving_Obj imov_obj    = call Create_Moving_Obj( start_pos, size, EType.Dynamic());
+    imov_obj.iboundaries.bound_right        = false;
+    imov_obj.ikinematic.drag                = 0.95;
+    imov_obj.ikinematic.acceleration        = val IVector ( 50, 50);
+
+    var IActor.IEnemie.IBrat ibrat = val IActor.IEnemie.IBrat ( call Actor_Id_Generator(), imov_obj, istatus, _, _, _, &itarget);
+    escape ibrat;
+end
+
+code/await Brat( var& IActor.IEnemie.IBrat ibrat, pool&[] Actor actors, pool&[] Tile tiles ) -> none
+do
+    event bool e_stop_state;
+    var IVector sprite_offset       = val IVector(24, 25);
+
+    var IAnimation ianim_flying         = val IAnimation( call Create_Image_Quad( "assets/img/actors/brat/brat-flying.bmp",          sprite_offset, 4), 10);
+    var IAnimation ianim_attack_start   = val IAnimation( call Create_Image_Quad( "assets/img/actors/brat/brat-attack-start.bmp",    sprite_offset, 3), 16);
+    var IAnimation ianim_attacking      = val IAnimation( call Create_Image_Quad( "assets/img/actors/brat/brat-attacking.bmp",       sprite_offset, 2), 10);
+    var IAnimation ianim_attack_end     = val IAnimation( call Create_Image_Quad( "assets/img/actors/brat/brat-attack-end.bmp",      sprite_offset, 1), 10);
+    var IAnimation ianim_hit            = val IAnimation( call Create_Image_Quad( "assets/img/actors/brat/brat-hit.bmp",             sprite_offset, 2), 10);
+    var IAnimation ianim_dead           = val IAnimation( call Create_Image_Quad( "assets/img/actors/brat/brat-dead.bmp",            sprite_offset, 1), 1);
+
+    var real target_radius  = 64;
+    var real slow_radius    = 96;
+    var int attack_prep     = 1000;
+    var int attack_cooldown = 1500;
+    var real normal_acc     = 250;
+    var real attack_acc     = 800;
+    var real stop_distance  = 10;
+
+    var[] uint actors_ids           = [ibrat.id];
+    var[] uint tiles_ids            = [0];
+    ibrat.imov_obj.iboundaries.bound_right  = true;
+    var IHit ihit = call Create_Hit();
+    par/or do
+        loop do
+            ibrat.istatus.state         = val EState.Idle();
+            ibrat.imov_obj.body_type    = val EType.Dynamic();
+            ibrat.imov_obj.isteering    = val ISteering_Component(IVector(0, 0), 0);
+            par/or do
+                par/or do
+                    loop do
+                        every FRAMES_REDRAW do
+                            var IVector target_direction = call VSub(ibrat.itarget.imov_obj.iaabb.center, ibrat.imov_obj.iaabb.center);
+                            ibrat.imov_obj.iaabb.scale.x = _fabs(ibrat.imov_obj.iaabb.scale.x) * call Signed(target_direction.x);
+                        end
+                    end
+                with
+                    loop do
+                        await Animation (&ianim_flying, &ibrat.imov_obj.iaabb.center, &ibrat.imov_obj.iaabb.scale, &ibrat.imov_obj.iaabb.rotate_angle, &ibrat.filter );
+                    end
+                with
+                    await (attack_cooldown)ms;
+                    ibrat.imov_obj.ikinematic.acceleration        = val IVector ( normal_acc, normal_acc);
+                    await Arrive_Behavior (&ibrat.imov_obj, &ibrat.itarget.imov_obj.iaabb.center, target_radius, slow_radius);
+                end
+                
+                // Start Attack
+                await Animation (&ianim_attack_start, &ibrat.imov_obj.iaabb.center, &ibrat.imov_obj.iaabb.scale, &ibrat.imov_obj.iaabb.rotate_angle, &ibrat.filter );
+                par/or do
+                    loop do
+                        await Animation (&ianim_attack_end, &ibrat.imov_obj.iaabb.center, &ibrat.imov_obj.iaabb.scale, &ibrat.imov_obj.iaabb.rotate_angle, &ibrat.filter );
+                    end
+                with
+                    await (attack_prep)ms;
+                end
+                // Attacking
+                var int attack_repetitons   = 2;
+                ibrat.imov_obj.body_type    = val EType.Trigger();
+                ibrat.istatus.state         = val EState.Attacking();
+                var IVector target_direction            = call VSub(ibrat.itarget.imov_obj.iaabb.center, ibrat.imov_obj.iaabb.center);
+                ibrat.imov_obj.ikinematic.acceleration  = val IVector ( attack_acc, attack_acc);
+                var IVector target_position             = ibrat.itarget.imov_obj.iaabb.center;
+                ibrat.imov_obj.isteering                = call Steering_Seek(ibrat.imov_obj.ikinematic, target_position);
+                ibrat.imov_obj.iaabb.scale.x            = _fabs(ibrat.imov_obj.iaabb.scale.x) * call Signed(ibrat.imov_obj.isteering.linear.x);
+                par/or do
+                    loop _ in [1 -> attack_repetitons] do
+                        await Animation (&ianim_attacking, &ibrat.imov_obj.iaabb.center, &ibrat.imov_obj.iaabb.scale, &ibrat.imov_obj.iaabb.rotate_angle, &ibrat.filter );
+                    end
+                with
+                    actors_ids           = [ibrat.id];
+                    tiles_ids            = [0];
+                    var IHitbox ihitbox = call Create_Brat_Bite_Hitbox(&ibrat, &actors_ids, &actors, &tiles_ids, &tiles);
+                    await Hitbox(&ihitbox);
+                end
+                ibrat.imov_obj.isteering    = val ISteering_Component(IVector(0, 0), 0);
+                // Stop Attack
+                await Animation (&ianim_attack_end, &ibrat.imov_obj.iaabb.center, &ibrat.imov_obj.iaabb.scale, &ibrat.imov_obj.iaabb.rotate_angle, &ibrat.filter );
+                continue;
+            with
+                (ihit.hit, ihit.type, ihit.effect, ihit.damage, ihit.angle, ihit.magnitude) = await ibrat.hit until ihit.hit == true;
+            end
+            loop do
+                var IVector acceleration    = outer.null_vector;
+                ibrat.imov_obj.isteering    = val ISteering_Component(IVector(0, 0), 0);
+                call Change_Life ( &ibrat.istatus, ihit.damage );
+                if ibrat.istatus.current_life == 0 then
+                    emit ibrat.destroy;
+                end
+                ibrat.imov_obj.ikinematic.velocity = call VMultSca(call Vector_From_Angle(ihit.angle), ihit.magnitude);
+                par/or do
+                    (ihit.hit, ihit.type, ihit.effect, ihit.damage, ihit.angle, ihit.magnitude) = await ibrat.hit until ihit.hit == true;
+                    continue;
+                with
+                    ibrat.filter = val Color( 255, 182, 182, 255);
+                    await Animation (&ianim_hit, &ibrat.imov_obj.iaabb.center, &ibrat.imov_obj.iaabb.scale, &ibrat.imov_obj.iaabb.rotate_angle, &ibrat.filter );
+                    ibrat.filter = val Color( 255, 255, 255, 255);
+                    break;
+                end
+            end
+        end
+    with
+        await ibrat.destroy;
+    with
+        every FRAMES_REDRAW do
+            var IVector half_size   = call AABB_Get_Half_Size(&ibrat.imov_obj.iaabb);
+            var IVector size        = call AABB_Get_Size(&ibrat.imov_obj.iaabb);
+            var Color color     = val Color(0, 0, 0, 255);
+            //call Draw_Rectangle(ibrat.imov_obj.iaabb.center.x, ibrat.imov_obj.iaabb.center.y, size.x, size.y, half_size.x, half_size.y, color);
+        end
+    end
+    ibrat.imov_obj.body_type            = val EType.Intangible();
+    ibrat.imov_obj.iboundaries          = call Create_Unbound();
+    ibrat.imov_obj.ikinematic.velocity  = call VMultSca(call Vector_From_Angle(ihit.angle), 200);
+    ibrat.imov_obj.ikinematic.drag      = 1;
+    par/or do
+        loop do
+            await Animation (&ianim_dead, &ibrat.imov_obj.iaabb.center, &ibrat.imov_obj.iaabb.scale, &ibrat.imov_obj.iaabb.rotate_angle, &ibrat.filter );
+        end
+    with
+        every FRAMES_UPDATE do
+            if not (call On_Screen( ibrat.imov_obj.iaabb.center, call AABB_Get_Half_Size( &ibrat.imov_obj.iaabb ))) then
+                break;
+            end
+            ibrat.imov_obj.iaabb.rotate_angle =  ((ibrat.imov_obj.iaabb.rotate_angle + 15) as int) % 360;
+        end
+    end
+end
+
+code/await/dynamic Actor ( var&/dynamic IActor.IEnemie.IBrat iactor, pool&[] Actor actors, pool&[] Tile tiles ) -> none
+do
+    await Brat (&iactor, &actors, &tiles);
+end
+
+code/call/dynamic Actor_Hit (var&/dynamic IActor.IEnemie.IBrat iactor, var&/dynamic IActor.IPlayer itarget) -> IActor_Hit
+do
+    var IActor_Hit ia_hit = val IActor_Hit ( call Create_Hit(), call Create_Hit() );
+    if iactor.istatus.state is EState.Attacking then
+        ia_hit.target_data.hit      = true;
+        ia_hit.target_data.damage   = -8;
+    end
+    escape ia_hit;
+end

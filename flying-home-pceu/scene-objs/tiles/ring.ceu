@@ -3,19 +3,20 @@ data ITile_Manager.IRing;
 code/call Create_Ring_Data (var& IMap imap, var int id) -> ITile_Manager.IRing
 do
 	var IVector size = val IVector (10, 22);
-	var ITile_Manager.IRing iring = val ITile_Manager.IRing (&imap, ETile_Type.Nonsolid(), size, id, _, _);
+	var ITile_Manager.IRing iring = val ITile_Manager.IRing ( id, size, _, ETile_Type.Nonsolid(), &imap, _, _);
 	escape iring;	
 end
 
 code/await Ring_Destroy ( var IVector start_position ) -> none
 do
-	var IVector offset 		= val IVector( 16, 16 );
+	var IVector offset 				= val IVector( 16, 16 );
     var IAnimation ianim_destroy  	= val IAnimation( call Create_Image_Quad( "assets/img/tiles/smallRing-destroy.bmp", offset, 9 ), 12);
-    
+
+    var Color filter 		= val Color (255, 255, 255, 255);
     var IVector position 	= start_position;
     var IVector scale 		= val IVector( 1, 1 );
     var real rotate_angle 	= 0;
-	await Animation (&ianim_destroy, &position, &scale, &rotate_angle );
+	await Animation (&ianim_destroy, &position, &scale, &rotate_angle, &filter );
 end
 
 code/await Ring (var& ITile_Manager.IRing itile ) -> NEVER

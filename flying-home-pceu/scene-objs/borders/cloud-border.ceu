@@ -1,14 +1,14 @@
 code/await Cloud_Top_Border (none) -> NEVER
 do
-    var IVector size                = val IVector ( 32, 16 );
-    var IVector offset              = val IVector ( 8, 8 );
+    var IVector size                = val IVector ( 32, 32 );
+    var IVector offset              = val IVector ( 16, 16 );
     var IVector bounds              = call Camera_Get_Boundaries_Y();
     var IVector position            = val IVector( 0, bounds.x - size.y/2 );
-    var IVector velocity            = val IVector ( -80, 0 );
+    var IVector velocity            = val IVector ( -30, 0 );
 
-    var IMoving_Obj imov_obj        = call Create_Moving_Obj( position, size, BType.Kinematic());
+    var IMoving_Obj imov_obj        = call Create_Moving_Obj( position, size, EType.Kinematic());
 
-    var IImage_Quad iquad           = call Create_Image_Quad("assets/img/borders/cloud-border.bmp", offset, 2);
+    var IImage_Quad iquad           = call Create_Image_Quad("assets/img/borders/cloud-border.bmp", offset, 1);
     var IBorder iborder             = call Create_Border ( iquad, imov_obj, velocity);
     var&? Border border             = spawn Border ( &iborder );
     await border;
@@ -16,16 +16,16 @@ end
 
 code/await Cloud_Bottom_Border (none) -> NEVER
 do
-    var IVector size                = val IVector ( 32, 16 );
-    var IVector offset              = val IVector ( 8, 24 );
+    var IVector size                = val IVector ( 32, 32 );
+    var IVector offset              = val IVector ( 16, 16 );
     var IVector bounds              = call Camera_Get_Boundaries_Y();
     var IVector position            = val IVector( 0, bounds.y + size.y/2 );
-    var IVector velocity            = val IVector ( -80, 0 );
+    var IVector velocity            = val IVector ( -30, 0 );
 
-    var IMoving_Obj imov_obj        = call Create_Moving_Obj( position, size, BType.Kinematic());
+    var IMoving_Obj imov_obj        = call Create_Moving_Obj( position, size, EType.Kinematic());
     imov_obj.iaabb.scale            = val IVector ( 1, -1 );
 
-    var IImage_Quad iquad           = call Create_Image_Quad("assets/img/borders/cloud-border.bmp", offset, 2);
+    var IImage_Quad iquad           = call Create_Image_Quad("assets/img/borders/cloud-border.bmp", offset, 1);
     var IBorder iborder             = call Create_Border ( iquad, imov_obj, velocity);
     var&? Border border             = spawn Border ( &iborder );
     await border;

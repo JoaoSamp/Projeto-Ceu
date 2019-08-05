@@ -1,0 +1,21 @@
+code/call Create_Brat_Bite_Hitbox (var& IActor iactor, var&[] uint actors_ids, pool&[] Actor actors, 
+                                    var&[] uint tiles_ids, pool&[] Tile tiles) -> IHitbox.IBrat_Bite
+do
+    var IVector size                    = val IVector(10, 14);
+    var IVector offset                  = val IVector (4, 0);
+    var IVector position                = iactor.imov_obj.iaabb.center;
+	var IAABBox iaabb 				    = val IAABBox(position, call VMultSca(size, 0.5), _, _);
+    var IHitbox.IBrat_Bite ihitbox      = val IHitbox.IBrat_Bite (&iactor, iaabb, offset, &actors_ids, &actors, &tiles_ids, &tiles);
+    escape ihitbox;
+end
+
+code/call/dynamic Actor_Hit (var&/dynamic IHitbox.IBrat_Bite ihitbox, var&/dynamic IActor.IPlayer itarget) -> IActor_Hit
+do
+    var IActor_Hit ia_hit = val IActor_Hit ( call Create_Hit(), call Create_Hit() );
+    ia_hit.target_data.hit      = true;
+    ia_hit.target_data.damage   = -8;
+    // var IVector vector_angle    = call VSub( itarget.imov_obj.iaabb.center, iactor.ibrat.imov_obj.iaabb.center );
+    // ia_hit.target_data.angle    = call Vector_To_Angle( IVector ( _fabs(vector_angle.x) * call Signed(iactor.ibrat.imov_obj.iaabb.scale.x), vector_angle.y)  );
+    ia_hit.target_data.magnitude = 100;
+    escape ia_hit;
+end

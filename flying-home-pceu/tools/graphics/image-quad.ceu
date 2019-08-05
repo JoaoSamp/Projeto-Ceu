@@ -3,12 +3,11 @@ data IImage_Quad with
     var IVector offset;
 	var int frames;
 	var int draw_frame = 0;
-    var Color color = val Color (255, 255, 255, 255);
 end
 
 code/call Create_Image_Quad(var text image_name, var IVector offset, var int frames) -> IImage_Quad
 do
-    var IImage_Quad iquad = val IImage_Quad(image_name, offset, frames, _, _);
+    var IImage_Quad iquad = val IImage_Quad(image_name, offset, frames, _);
     escape iquad;
 end
 

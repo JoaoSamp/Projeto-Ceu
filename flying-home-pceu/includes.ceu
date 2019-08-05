@@ -9,6 +9,7 @@ data IActor;
 data IActor.IEnemie;
 data IActor.IEnemie.IBrat;
 data IActor.IPlayer;
+data IActor.IPlayer_Smash;
 data ITile_Manager;
 data ITile_Manager.ICloud;
 data ITile_Manager.IRing;

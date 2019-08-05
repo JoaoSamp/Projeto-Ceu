@@ -42,10 +42,17 @@ do
 	escape v;
 end
 
-code/call VRound( var IVector v, var int prec) -> IVector
+code/call VRound( var IVector v) -> IVector
 do
 	v.x = _round(v.x);
 	v.y = _round(v.y);
+	escape v;
+end
+
+code/call VRound2( var IVector v, var int d) -> IVector
+do
+	v.x = _round(v.x * d) /d;
+	v.y = _round(v.y * d) /d;
 	escape v;
 end
 
@@ -77,6 +84,18 @@ do
     var real module = _sqrt((v.x * v.x) + (v.y * v.y));
     var IVector v_rotated = val IVector(module * _cosf(angle), module * _sinf(angle));
     escape v_rotated;
+end
+
+code/call Vector_From_Angle (var real angle ) -> IVector
+do
+    var IVector v = val IVector( _cosf(angle), _sinf(angle));
+    escape v;
+end
+
+code/call Vector_To_Angle (var IVector v ) -> real
+do
+    var real angle = _atan2(v.y, v.x);
+    escape angle;
 end
 
 code/call VLerp ( var IVector v_end, var IVector v_start, var real perc) -> IVector

@@ -84,7 +84,7 @@ do
 	escape true;
 end
 
-code/call Draw_Image(var& IImage_Quad iquad, var real x, var real y, var real sx, var real sy, var real ox, var real oy, var real rotate_angle) -> none
+code/call Draw_Image(var& IImage_Quad iquad, var real x, var real y, var real sx, var real sy, var real ox, var real oy, var real rotate_angle, var Color filter) -> none
 do
 
 	if sx < 0 and sy < 0 then
@@ -117,8 +117,27 @@ do
 	emit GRAPHICS_SET_BMP_FRAME ( iquad.draw_frame, iquad.frames );
 	emit GRAPHICS_SET_SCALE ( sx, sy );
 	emit GRAPHICS_SET_ROTATION ( rotate_angle );
-	emit GRAPHICS_SET_COLOR_NAME(iquad.color);
+	emit GRAPHICS_SET_COLOR_NAME(filter);
 	emit GRAPHICS_DRAW_BMP ( _round(x) as int, _round(y) as int, iquad.image_name );
+end
+
+code/call Draw_Rectangle(var real x, var real y, var real sx, var real sy, var real ox, var real oy, var Color filter) -> none
+do
+	sx 	= _fabs(sx);
+	sy 	= _fabs(sy);
+	x 	= x - ox;
+	y 	= y + oy;
+	
+	var IVector camera_position = call Camera_Get_Position();
+	var IVector camera_scale 	= call Camera_Get_Scale();
+
+	x 	= x - camera_position.x;
+	y 	= y - camera_position.y;
+	x 	= x * camera_scale.x;
+	y 	= y * camera_scale.y;
+
+	emit GRAPHICS_SET_COLOR_NAME(filter);
+	emit GRAPHICS_DRAW_RECT ( _round(x) as int, _round(y) as int, _round(sx) as int, _round(sy) as int  );
 end
 
 code/call Camera_Update(var real dt) -> none

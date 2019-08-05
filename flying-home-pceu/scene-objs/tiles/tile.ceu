@@ -1,8 +1,9 @@
 data ITile_Manager with
-	var& IMap imap;
-	var ETile_Type type;
-	var IVector size = val IVector (0, 0);
 	var int id;
+	var IVector size 	= val IVector (0, 0);
+	var Color filter 	= val Color (255, 255, 255, 255);
+	var ETile_Type type;
+	var& IMap imap;
 	event int collision;
 	event none destroy;
 end
@@ -28,7 +29,7 @@ do
         		if index > 0 and index < $itile.imap.tile_map then
 	                if itile.imap.tile_map[index] == itile.id then
 	                	var IVector position = call Get_Pos_By_Index( &itile.imap, index );
-						call Draw_Image( &iquad, position.x, position.y, 1, 1, iquad.offset.x, iquad.offset.y, 0);
+						call Draw_Image( &iquad, position.x, position.y, 1, 1, iquad.offset.x, iquad.offset.y, 0, itile.filter);
 					end
 				end
 			end

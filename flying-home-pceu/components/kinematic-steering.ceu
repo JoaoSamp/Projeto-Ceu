@@ -35,7 +35,7 @@ end
 code/call Kinematic_Update_X (var& IKinematic_Component ikinematic, var real dt) -> none
 do
 	ikinematic.old_position.x 	= ikinematic.position.x;
-	var IVector new_position 	= call VAdd(ikinematic.position, call VMultSca(ikinematic.velocity, dt/1000.0));
+	var IVector new_position 	= call VAdd(ikinematic.position	, call VMultSca(ikinematic.velocity, dt/1000.0));
 	ikinematic.position.x 		= new_position.x;
 end
 

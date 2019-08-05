@@ -1,0 +1,37 @@
+code/await Temple_BG (var& IMap imap) -> NEVER
+do
+    // Create the background's quad 
+    var IVector size            = val IVector (320, 160);
+    var IVector offset          = call VMultSca(size, 0.5);
+    var IVector scale           = val IVector (0.75, 0.75);
+    var IImage_Quad iquad       = call Create_Image_Quad("assets/img/background/temple-bg.bmp", offset, 1);
+    
+    // Create a background data with quad(image) and speed 
+    var IVector velocity            = val IVector (0, 0);
+    var IVector position            = call Camera_Get_Position();
+    var IMoving_Obj imov_obj        = call Create_Moving_Obj( position, size, EType.Kinematic());
+
+    var IBackground ibg_sky_one     = call Create_Background( &iquad, imov_obj, velocity);
+
+    var IBackground ibg_sky_two                 = ibg_sky_one;
+    var IVector true_size                       = call AABB_Get_Size(&ibg_sky_two.imov_obj.iaabb);
+    ibg_sky_two.imov_obj.ikinematic.position.x  = position.x + true_size.x;
+    var Color filter = val Color (215, 215, 215, 255);
+    ibg_sky_one.filter = filter;
+    ibg_sky_two.filter = filter;
+    par do
+        loop do
+            var&? Background_Image bg = spawn Background_Image (&ibg_sky_one);
+            await bg;
+            var IVector true_size                       = call AABB_Get_Size(&ibg_sky_one.imov_obj.iaabb);
+            ibg_sky_one.imov_obj.ikinematic.position.x  = ibg_sky_one.imov_obj.ikinematic.position.x + (true_size.x * 2);
+        end
+    with
+        loop do
+            var&? Background_Image bg   = spawn Background_Image (&ibg_sky_two);
+            await bg;
+            var IVector true_size                       = call AABB_Get_Size(&ibg_sky_two.imov_obj.iaabb);
+            ibg_sky_two.imov_obj.ikinematic.position.x  = ibg_sky_two.imov_obj.ikinematic.position.x + (true_size.x * 2);
+        end
+    end
+end

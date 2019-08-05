@@ -14,7 +14,8 @@ data Actor_Tag as nothing;
 data Actor_Tag.Playable as 1;
 data Actor_Tag.Enemy 	as 2;
 
-
 data State as nothing;
 data State.Playable as 1;
 data State.Enemy 	as 2;
+
+var int gravity         = 75;

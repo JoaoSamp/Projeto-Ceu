@@ -3,12 +3,12 @@ data IAnimation with
 	var int fps;
 end
 
-code/call Draw_Animation (var& IImage_Quad iquad, var& IVector position, var& IVector scale, var& real rotate_angle) -> none
+code/call Draw_Animation (var& IImage_Quad iquad, var& IVector position, var& IVector scale, var& real rotate_angle, var& Color filter) -> none
 do
-    call Draw_Image( &iquad, position.x, position.y, scale.x, scale.y, iquad.offset.x, iquad.offset.y, rotate_angle );
+    call Draw_Image( &iquad, position.x, position.y, scale.x, scale.y, iquad.offset.x, iquad.offset.y, rotate_angle, filter );
 end
 
-code/await Animation ( var& IAnimation ianimation, var& IVector position, var& IVector scale, var& real rotate_angle ) -> none
+code/await Animation ( var& IAnimation ianimation, var& IVector position, var& IVector scale, var& real rotate_angle, var& Color filter) -> none
 do
 	var IImage_Quad iquad = ianimation.iquad;
 	par/or do
@@ -19,7 +19,7 @@ do
 		end
 	with
 		every FRAMES_REDRAW do
-			call Draw_Animation ( &iquad, &position, &scale, &rotate_angle  );
+			call Draw_Animation ( &iquad, &position, &scale, &rotate_angle, &filter  );
 		end
 	end
 end

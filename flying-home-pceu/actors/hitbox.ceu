@@ -1,0 +1,55 @@
+data IHitbox with
+    var& IActor iactor;
+    var IAABBox iaabb;
+    var IVector offset;
+    var&[] uint actors_ids;
+    pool&[] Actor actors;
+    var&[] uint tiles_ids;
+    pool&[] Tile tiles;
+end
+
+data IHitbox.IPlayer_Smash;
+data IHitbox.IPlayer_Jab;
+data IHitbox.IPlayer_Cross;
+data IHitbox.IPlayer_Uppercut;
+data IHitbox.IPlayer_Spin;
+
+data IHitbox.IBrat_Bite;
+
+code/call/dynamic Actor_Hit (var&/dynamic IHitbox ihitbox, var&/dynamic IActor itarget) -> IActor_Hit
+do
+    var IActor_Hit ia_hit = val IActor_Hit ( call Create_Hit(), call Create_Hit() );
+    escape ia_hit;
+end
+
+code/await Hitbox ( var& IHitbox ihitbox ) -> NEVER
+do
+    par do
+        every FRAMES_UPDATE do
+            ihitbox.iaabb.center = call VAdd (ihitbox.iactor.imov_obj.iaabb.center, IVector(call Signed( ihitbox.iactor.imov_obj.iaabb.scale.x ) * ihitbox.offset.x, ihitbox.offset.y));
+            var&? Actor actor;
+            loop actor in ihitbox.actors do
+                if actor? then
+                    if call Actor_Can_Be_Hit( &ihitbox.actors_ids, actor!.iactor.id) then
+                        if call Overlaps( &ihitbox.iaabb, &actor!.iactor.imov_obj.iaabb ) then
+                            ihitbox.actors_ids = ihitbox.actors_ids .. [actor!.iactor.id];
+                            var IActor_Hit ia_hit   = call/dynamic Actor_Hit(&ihitbox, &actor!.iactor);
+                            if ia_hit.target_data.hit then
+                                emit actor!.iactor.hit (ia_hit.target_data.hit,       ia_hit.target_data.type,
+                                                        ia_hit.target_data.effect,    ia_hit.target_data.damage,
+                                                        ia_hit.target_data.angle,     ia_hit.target_data.magnitude);
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    with
+        every FRAMES_REDRAW do
+            var IVector size    = call AABB_Get_Size(&ihitbox.iaabb);
+
+            var Color color     = val Color(255, 0, 0, 255);
+            //call Draw_Rectangle(ihitbox.iaabb.center.x, ihitbox.iaabb.center.y, size.x, size.y, ihitbox.iaabb.half_size.x, ihitbox.iaabb.half_size.y, color);
+        end
+    end
+end

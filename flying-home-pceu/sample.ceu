@@ -4,37 +4,19 @@ emit WINDOW_SET_SIZE(DIM*10,DIM*10,DIM,DIM);
 emit WINDOW_SET_CLEAR_COLOR_RGB(128,205,225);
 emit FRAMES_SET(yes);
 
-var Color my_color = val Color (255, 255, 255, 125);
-emit GRAPHICS_SET_SCALE(2,2);
-var int r = 0;
-par do
-	every FRAMES_REDRAW do
-		emit GRAPHICS_SET_COLOR_NAME(my_color);
-		emit GRAPHICS_SET_BLEND_MODE(BLEND_MODE_NONE);
-		emit GRAPHICS_DRAW_ELLIPSE( 0, 0, 3, 3);
-		emit GRAPHICS_SET_BLEND_MODE(BLEND_MODE_BLEND);
-		emit GRAPHICS_DRAW_ELLIPSE( 0, 0, 5, 8);
-		emit GRAPHICS_SET_BLEND_MODE(BLEND_MODE_NONE);
-		emit GRAPHICS_SET_COLOR_NAME(COLOR_RED);
-		emit GRAPHICS_SET_COLOR_ALPHA(15);
-		emit GRAPHICS_SET_BLEND_MODE(BLEND_MODE_NONE);
+code/await Pool_Test (var int number) -> none
+do
+	every FRAMES_UPDATE do
+		_printf("%d\n", number);
 	end
-with
-	var int i;
-	loop do
-		loop i in [3 -> 10] do
-			await 100ms;
-			r = i;
-		end
-		loop i in ]3 <- 10[ do
-			await 100ms;
-			r = i;
-		end
-	end
-with
-	emit GRAPHICS_SET_DRAW_MODE(DRAW_MODE_LINE);
-	await 4s;
-	emit GRAPHICS_SET_DRAW_MODE(DRAW_MODE_FILL);
-
 end
 
+await 3s;
+pool[] Pool_Test ptest;
+
+spawn Pool_Test (1) in ptest;
+var&? Pool_Test ptester = spawn Pool_Test(2) in ptest;
+
+await 3s;
+
+await FOREVER;

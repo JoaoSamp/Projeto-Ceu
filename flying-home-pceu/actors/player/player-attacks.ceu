@@ -1,0 +1,140 @@
+code/call Create_Smash_Hitbox (var& IActor iactor, var&[] uint actors_ids, pool&[] Actor actors, 
+                                var&[] uint tiles_ids, pool&[] Tile tiles) -> IHitbox.IPlayer_Smash
+do
+    var IVector size                    = val IVector(16, 26);
+    var IVector offset                  = val IVector (15, -4);
+    var IVector position                = iactor.imov_obj.iaabb.center;
+	var IAABBox iaabb 				    = val IAABBox(position, call VMultSca(size, 0.5), _, _);
+    var IHitbox.IPlayer_Smash ihitbox   = val IHitbox.IPlayer_Smash (&iactor, iaabb, offset, &actors_ids, &actors, &tiles_ids, &tiles);
+    escape ihitbox;
+end
+
+code/call Create_Smash_Hitbox2 (var& IActor iactor, var&[] uint actors_ids, pool&[] Actor actors, 
+                                var&[] uint tiles_ids, pool&[] Tile tiles) -> IHitbox.IPlayer_Smash
+do
+    var IVector size                    = val IVector(22, 12);
+    var IVector offset                  = val IVector (4, -12);
+    var IVector position                = iactor.imov_obj.iaabb.center;
+	var IAABBox iaabb 				    = val IAABBox(position, call VMultSca(size, 0.5), _, _);
+    var IHitbox.IPlayer_Smash ihitbox   = val IHitbox.IPlayer_Smash (&iactor, iaabb, offset, &actors_ids, &actors, &tiles_ids, &tiles);
+    escape ihitbox;
+end
+
+code/call/dynamic Actor_Hit (var&/dynamic IHitbox.IPlayer_Smash ihitbox, var&/dynamic IActor.IEnemie itarget) -> IActor_Hit
+do
+    var IActor_Hit ia_hit = val IActor_Hit ( call Create_Hit(), call Create_Hit() );
+    ia_hit.target_data.hit      = true;
+    ia_hit.target_data.damage   = -7;
+    var IVector vector_angle    = call VSub( itarget.imov_obj.iaabb.center, ihitbox.iactor.imov_obj.iaabb.center );
+    ia_hit.target_data.angle    = call Vector_To_Angle( IVector (_fabs(vector_angle.x), vector_angle.y)  );
+    ia_hit.target_data.magnitude = 200;
+    escape ia_hit;
+end
+
+code/call Create_Jab_Hitbox (var& IActor iactor, var&[] uint actors_ids, pool&[] Actor actors, 
+                                var&[] uint tiles_ids, pool&[] Tile tiles) -> IHitbox.IPlayer_Jab
+do
+    var IVector size                    = val IVector(13, 15);
+    var IVector offset                  = val IVector (13, 0);
+    var IVector position                = iactor.imov_obj.iaabb.center;
+	var IAABBox iaabb 				    = val IAABBox(position, call VMultSca(size, 0.5), _, _);
+    var IHitbox.IPlayer_Jab ihitbox     = val IHitbox.IPlayer_Jab (&iactor, iaabb, offset, &actors_ids, &actors, &tiles_ids, &tiles);
+    escape ihitbox;
+end
+
+code/call/dynamic Actor_Hit (var&/dynamic IHitbox.IPlayer_Jab ihitbox, var&/dynamic IActor.IEnemie itarget) -> IActor_Hit
+do
+    var IActor_Hit ia_hit           = val IActor_Hit ( call Create_Hit(), call Create_Hit() );
+    ia_hit.target_data.hit          = true;
+    ia_hit.target_data.damage       = -4;
+    ia_hit.target_data.angle        = call Vector_To_Angle( IVector (1, 0)  );
+    ia_hit.target_data.magnitude    = 50;
+    escape ia_hit;
+end
+
+code/call Create_Cross_Hitbox (var& IActor iactor, var&[] uint actors_ids, pool&[] Actor actors, 
+                                var&[] uint tiles_ids, pool&[] Tile tiles) -> IHitbox.IPlayer_Cross
+do
+    var IVector size                    = val IVector(13, 15);
+    var IVector offset                  = val IVector (13, -4);
+    var IVector position                = iactor.imov_obj.iaabb.center;
+	var IAABBox iaabb 				    = val IAABBox(position, call VMultSca(size, 0.5), _, _);
+    var IHitbox.IPlayer_Cross ihitbox   = val IHitbox.IPlayer_Cross (&iactor, iaabb, offset, &actors_ids, &actors, &tiles_ids, &tiles);
+    escape ihitbox;
+end
+
+code/call/dynamic Actor_Hit (var&/dynamic IHitbox.IPlayer_Cross ihitbox, var&/dynamic IActor.IEnemie itarget) -> IActor_Hit
+do
+    var IActor_Hit ia_hit           = val IActor_Hit ( call Create_Hit(), call Create_Hit() );
+    ia_hit.target_data.hit          = true;
+    ia_hit.target_data.damage       = -5;
+    ia_hit.target_data.angle        = call Vector_To_Angle( IVector (1, 0)  );
+    ia_hit.target_data.magnitude    = 50;
+    escape ia_hit;
+end
+
+code/call Create_Uppercut_Hitbox (var& IActor iactor, var&[] uint actors_ids, pool&[] Actor actors, 
+                                    var&[] uint tiles_ids, pool&[] Tile tiles) -> IHitbox.IPlayer_Uppercut
+do
+    var IVector size                    = val IVector(16, 26);
+    var IVector offset                  = val IVector (-9, 7);
+    var IVector position                = iactor.imov_obj.iaabb.center;
+	var IAABBox iaabb 				    = val IAABBox(position, call VMultSca(size, 0.5), _, _);
+    var IHitbox.IPlayer_Uppercut ihitbox   = val IHitbox.IPlayer_Uppercut (&iactor, iaabb, offset, &actors_ids, &actors, &tiles_ids, &tiles);
+    escape ihitbox;
+end
+
+code/call Create_Uppercut_Hitbox2 (var& IActor iactor, var&[] uint actors_ids, pool&[] Actor actors, 
+                                    var&[] uint tiles_ids, pool&[] Tile tiles) -> IHitbox.IPlayer_Uppercut
+do
+    var IVector size                    = val IVector(18, 12);
+    var IVector offset                  = val IVector (-5, 15);
+    var IVector position                = iactor.imov_obj.iaabb.center;
+	var IAABBox iaabb 				    = val IAABBox(position, call VMultSca(size, 0.5), _, _);
+    var IHitbox.IPlayer_Uppercut ihitbox   = val IHitbox.IPlayer_Uppercut (&iactor, iaabb, offset, &actors_ids, &actors, &tiles_ids, &tiles);
+    escape ihitbox;
+end
+
+code/call/dynamic Actor_Hit (var&/dynamic IHitbox.IPlayer_Uppercut ihitbox, var&/dynamic IActor.IEnemie itarget) -> IActor_Hit
+do
+    var IActor_Hit ia_hit           = val IActor_Hit ( call Create_Hit(), call Create_Hit() );
+    ia_hit.target_data.hit          = true;
+    ia_hit.target_data.damage       = -7;
+    var IVector vector_angle        = call VSub( itarget.imov_obj.iaabb.center, ihitbox.iactor.imov_obj.iaabb.center );
+    ia_hit.target_data.angle        = call Vector_To_Angle( IVector (_fabs(vector_angle.x) * -1, _fabs(vector_angle.y) )  );
+    ia_hit.target_data.magnitude    = 200;
+    escape ia_hit;
+end
+
+code/call Create_Spin_Hitbox (var& IActor iactor, var&[] uint actors_ids, pool&[] Actor actors, 
+                                var&[] uint tiles_ids, pool&[] Tile tiles) -> IHitbox.IPlayer_Spin
+do
+    var IVector size                    = val IVector(15, 19);
+    var IVector offset                  = val IVector (2, -1);
+    var IVector position                = iactor.imov_obj.iaabb.center;
+	var IAABBox iaabb 				    = val IAABBox(position, call VMultSca(size, 0.5), _, _);
+    var IHitbox.IPlayer_Spin ihitbox    = val IHitbox.IPlayer_Spin (&iactor, iaabb, offset, &actors_ids, &actors, &tiles_ids, &tiles);
+    escape ihitbox;
+end
+
+code/call Create_Spin_Hitbox2 (var& IActor iactor, var&[] uint actors_ids, pool&[] Actor actors, 
+                                var&[] uint tiles_ids, pool&[] Tile tiles) -> IHitbox.IPlayer_Spin
+do
+    var IVector size                    = val IVector(24, 11);
+    var IVector offset                  = val IVector (2, -1);
+    var IVector position                = iactor.imov_obj.iaabb.center;
+	var IAABBox iaabb 				    = val IAABBox(position, call VMultSca(size, 0.5), _, _);
+    var IHitbox.IPlayer_Spin ihitbox    = val IHitbox.IPlayer_Spin (&iactor, iaabb, offset, &actors_ids, &actors, &tiles_ids, &tiles);
+    escape ihitbox;
+end
+
+code/call/dynamic Actor_Hit (var&/dynamic IHitbox.IPlayer_Spin ihitbox, var&/dynamic IActor.IEnemie itarget) -> IActor_Hit
+do
+    var IActor_Hit ia_hit           = val IActor_Hit ( call Create_Hit(), call Create_Hit() );
+    ia_hit.target_data.hit          = true;
+    ia_hit.target_data.damage       = -4;
+    var IVector vector_angle        = call VSub( itarget.imov_obj.iaabb.center, ihitbox.iactor.imov_obj.iaabb.center );
+    ia_hit.target_data.angle        = call Vector_To_Angle( vector_angle );
+    ia_hit.target_data.magnitude    = 50;
+    escape ia_hit;
+end

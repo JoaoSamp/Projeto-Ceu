@@ -1,49 +1,39 @@
+data EState;
+data EState.Idle;
+data EState.Attacking;
+
 data IStatus_Component with
-    var int max_life;
-    var int current_life;
-    var int max_mana;
-    var int current_mana;
+	var EState state 		= val EState.Idle();
+    var int max_life 		= 0;
+    var int current_life 	= 0;
+    var int max_mana 		= 0;
+    var int current_mana 	= 0;
     event none poison_hit;
     event int stun;
 end
 
 code/call Create_Status_Component (var int max_life, var int max_mana) -> IStatus_Component
 do
-	var IStatus_Component istatus = val IStatus_Component ( max_life, max_life, max_mana, max_mana, _, _);
+	var IStatus_Component istatus = val IStatus_Component ( _, max_life, max_life, max_mana, max_mana, _, _);
 	escape istatus;
 end
 
-code/call Change_Life (var int value, var& IStatus_Component istatus) -> none
+code/call Change_Life ( var& IStatus_Component istatus, var int value ) -> none
 do
     istatus.current_life = istatus.current_life + value;
     if istatus.current_life > istatus.max_life then
         istatus.current_life = istatus.max_life;
+	else/if istatus.current_life < 0 then
+        istatus.current_life = 0; 
     end
 end
 
-code/call Change_Mana (var int value, var& IStatus_Component istatus) -> none
+code/call Change_Mana ( var& IStatus_Component istatus, var int value ) -> none
 do
     istatus.current_mana = istatus.current_mana + value;
     if istatus.current_mana > istatus.max_mana then
         istatus.current_mana = istatus.max_mana;
+	else/if istatus.current_mana < 0 then
+        istatus.current_mana = 0;
     end
-end
-
-code/await Status_Effect (var& IActor iactor, var& IStatus_Component istatus) -> NEVER
-do
-	loop do
-		await istatus.poison_hit;
-		loop do
-			par/or do
-				loop _ in [1 -> 10] do
-					call Change_Life (-1, &istatus);
-					emit iactor.hit(_, _, _, _, _);
-					await 1000ms;
-				end
-				break;
-			with
-				await istatus.poison_hit;
-			end
-		end
-	end
 end

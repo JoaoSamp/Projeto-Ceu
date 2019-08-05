@@ -1,0 +1,43 @@
+data ITile_Manager.IDirt;
+
+code/call Create_Dirt_Data (var& IMap imap, var int id) -> ITile_Manager.IDirt
+do
+	var IVector size = val IVector (32, 32);
+	var ITile_Manager.IDirt idirt = val ITile_Manager.IDirt ( id, size, _, ETile_Type.Solid(), &imap, _, _);
+	escape idirt;	
+end
+
+code/await Dirt_Destroy ( var IVector start_position ) -> none
+do
+	// var IVector offset 				= val IVector( 16, 16 );
+    // var IAnimation ianim_destroy  	= val IAnimation( call Create_Image_Quad( "assets/img/tiles/smallDirt-destroy.bmp", offset, 9 ), 12);
+
+    // var Color filter 		= val Color (255, 255, 255, 255);
+    // var IVector position 	= start_position;
+    // var IVector scale 		= val IVector( 1, 1 );
+    // var real rotate_angle 	= 0;
+	// await Animation (&ianim_destroy, &position, &scale, &rotate_angle, &filter );
+end
+
+code/await Dirt (var& ITile_Manager.IDirt itile ) -> NEVER
+do
+	var IVector offset	= val IVector (16, 16);
+	var IImage_Quad iquad	= call Create_Image_Quad( "assets/img/tiles/dirt-idle.bmp", offset, 1 );
+    pool[] Dirt_Destroy destroy_pool;
+
+    every FRAMES_REDRAW do
+        call Tiles_Draw (&itile, &iquad);
+    end
+end
+
+
+code/await/dynamic Tile (var&/dynamic ITile_Manager.IDirt itile ) -> NEVER
+do
+	await Dirt (&itile);
+end
+
+code/call/dynamic Tile_Hit (var&/dynamic IActor.IPlayer iactor, var&/dynamic ITile_Manager.IDirt itile, var int index) -> ITile_Collision
+do
+	var ITile_Collision it_collision = val ITile_Collision( false, 0);
+	escape it_collision;
+end

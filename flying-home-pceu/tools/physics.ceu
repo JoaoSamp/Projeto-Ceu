@@ -2,11 +2,11 @@ code/call Check_Bot_Collision(var& IMoving_Obj imov_obj, var& IMap imap) -> int
 do
     var IVector half_size       = call AABB_Get_Half_Size(&imov_obj.iaabb);
     var real old_bottom         = imov_obj.ikinematic.old_position.y - half_size.y - 1;
-    var IVector old_bot_left    = call VRound( IVector (imov_obj.ikinematic.old_position.x - half_size.x + 1, old_bottom), 1);
+    var IVector old_bot_left    = call VRound( IVector (imov_obj.ikinematic.old_position.x - half_size.x + 1, old_bottom));
 
     var real new_bottom             = imov_obj.ikinematic.position.y - half_size.y - 1;
-    var IVector new_bot_left       = call VRound( IVector(imov_obj.ikinematic.position.x - half_size.x + 1, new_bottom), 1);
-    var IVector new_bot_right      = call VRound( IVector(imov_obj.ikinematic.position.x + half_size.x - 1, new_bottom), 1);
+    var IVector new_bot_left       = call VRound( IVector(imov_obj.ikinematic.position.x - half_size.x + 1, new_bottom));
+    var IVector new_bot_right      = call VRound( IVector(imov_obj.ikinematic.position.x + half_size.x - 1, new_bottom));
 
     var int end_y       = call Get_Y_Index_By_Y_Pos( &imap, new_bottom );
     var int beg_y       = _fmax( call Get_Y_Index_By_Y_Pos( &imap, old_bottom ) - 1, end_y) as int;
@@ -40,11 +40,11 @@ code/call Check_Top_Collision(var& IMoving_Obj imov_obj, var& IMap imap) -> int
 do
     var IVector half_size       = call AABB_Get_Half_Size( &imov_obj.iaabb );
     var real old_top            = imov_obj.ikinematic.old_position.y + half_size.y + 1;
-    var IVector old_top_left    = call VRound( IVector ( imov_obj.ikinematic.old_position.x - half_size.x + 1, old_top ), 1);
+    var IVector old_top_left    = call VRound( IVector ( imov_obj.ikinematic.old_position.x - half_size.x + 1, old_top ));
 
     var real new_top            = imov_obj.ikinematic.position.y + half_size.y + 1;
-    var IVector new_top_left    = call VRound( IVector(imov_obj.ikinematic.position.x - half_size.x + 1, new_top), 1);
-    var IVector new_top_right   = call VRound( IVector(imov_obj.ikinematic.position.x + half_size.x - 1, new_top), 1);
+    var IVector new_top_left    = call VRound( IVector(imov_obj.ikinematic.position.x - half_size.x + 1, new_top));
+    var IVector new_top_right   = call VRound( IVector(imov_obj.ikinematic.position.x + half_size.x - 1, new_top));
 
     var int end_y       = call Get_Y_Index_By_Y_Pos( &imap, new_top );
     var int beg_y       = _fmin( call Get_Y_Index_By_Y_Pos( &imap, old_top ) + 1, end_y) as int;
@@ -79,11 +79,11 @@ code/call Check_Left_Collision(var& IMoving_Obj imov_obj, var& IMap imap) -> int
 do
     var IVector half_size       = call AABB_Get_Half_Size( &imov_obj.iaabb );
     var real old_left           = imov_obj.ikinematic.old_position.x - half_size.x - 1;
-    var IVector old_bot_left    = call VRound( IVector ( old_left, imov_obj.ikinematic.old_position.y - half_size.y ), 1);
+    var IVector old_bot_left    = call VRound( IVector ( old_left, imov_obj.ikinematic.old_position.y - half_size.y ));
 
     var real new_left           = imov_obj.ikinematic.position.x - half_size.x - 1;
-    var IVector new_bot_left    = call VRound( IVector( new_left, imov_obj.ikinematic.position.y - half_size.y), 1);
-    var IVector new_top_left    = call VRound( IVector( new_left, imov_obj.ikinematic.position.y + half_size.y), 1);
+    var IVector new_bot_left    = call VRound( IVector( new_left, imov_obj.ikinematic.position.y - half_size.y));
+    var IVector new_top_left    = call VRound( IVector( new_left, imov_obj.ikinematic.position.y + half_size.y));
 
     var int end_x       = call Get_X_Index_By_X_Pos( &imap, new_left );
     var int beg_x       = _fmax( call Get_X_Index_By_X_Pos( &imap, old_left ) + 1, end_x) as int;
@@ -118,11 +118,11 @@ code/call Check_Right_Collision(var& IMoving_Obj imov_obj, var& IMap imap) -> in
 do
     var IVector half_size       = call AABB_Get_Half_Size( &imov_obj.iaabb );
     var real old_right          = imov_obj.ikinematic.old_position.x + half_size.x + 1;
-    var IVector old_bot_right   = call VRound( IVector ( old_right, imov_obj.ikinematic.old_position.y - half_size.y ), 1);
+    var IVector old_bot_right   = call VRound( IVector ( old_right, imov_obj.ikinematic.old_position.y - half_size.y ));
 
     var real new_right          = imov_obj.ikinematic.position.x + half_size.x + 1;
-    var IVector new_bot_right   = call VRound( IVector( new_right, imov_obj.ikinematic.position.y - half_size.y), 1);
-    var IVector new_top_right   = call VRound( IVector( new_right, imov_obj.ikinematic.position.y + half_size.y), 1);
+    var IVector new_bot_right   = call VRound( IVector( new_right, imov_obj.ikinematic.position.y - half_size.y));
+    var IVector new_top_right   = call VRound( IVector( new_right, imov_obj.ikinematic.position.y + half_size.y));
 
     var int end_x       = call Get_X_Index_By_X_Pos( &imap, new_right );
     var int beg_x       = _fmin( call Get_X_Index_By_X_Pos( &imap, old_right ) + 1, end_x) as int;
@@ -215,11 +215,11 @@ do
                         var IAABBox tile_iaabb = val IAABBox (call Get_Pos_By_Index( &imap, right_collision_index ), call VMultSca(tile!.itile.size, 0.5), IVector(1,1), 0);
                         if call Overlaps( &tile_iaabb, &imov_obj.iaabb ) then
                             if tile!.itile.type is ETile_Type.Solid then
-                                var int right_position = _round(tile_iaabb.center.x - tile_iaabb.half_size.x - half_size.x) as int;
+                                var int right_position              = _round(tile_iaabb.center.x - tile_iaabb.half_size.x - half_size.x) as int;
                                 if  (_round(imov_obj.ikinematic.old_position.x) as int) <= right_position then
                                     imov_obj.ikinematic.position.x  = right_position;
                                     imov_obj.ikinematic.velocity.x  = 0;
-                                    imov_obj.pushes_right_tile     = true;
+                                    imov_obj.pushes_right_tile      = true;
                                 end
                             end
                             var ITile_Collision it_collision        = call/dynamic Tile_Hit (&actor!.iactor, &tile!.itile, right_collision_index);
@@ -241,11 +241,11 @@ do
                         var IAABBox tile_iaabb = val IAABBox (call Get_Pos_By_Index( &imap, left_collision_index ), call VMultSca(tile!.itile.size, 0.5), IVector(1,1), 0);                                
                         if call Overlaps( &tile_iaabb, &imov_obj.iaabb ) then
                             if tile!.itile.type is ETile_Type.Solid then
-                                var int left_position = _round(tile_iaabb.center.x + tile_iaabb.half_size.x + half_size.x) as int;
+                                var int left_position               = _round(tile_iaabb.center.x + tile_iaabb.half_size.x + half_size.x) as int;
                                 if  (_round(imov_obj.ikinematic.old_position.x) as int) >= left_position then
                                     imov_obj.ikinematic.position.x  = left_position;
                                     imov_obj.ikinematic.velocity.x  = 0;
-                                    imov_obj.pushes_left_tile     = true;
+                                    imov_obj.pushes_left_tile       = true;
                                 end
                             end
                             var ITile_Collision it_collision        = call/dynamic Tile_Hit (&actor!.iactor, &tile!.itile, left_collision_index);
@@ -265,14 +265,14 @@ do
                 var&? Tile tile;
                 loop tile in tiles do
                     if tile!.itile.id == imap.tile_map[bot_collision_index] then
-                        var IAABBox tile_iaabb = val IAABBox (call Get_Pos_By_Index( &imap, bot_collision_index ), call VMultSca(tile!.itile.size, 0.5), IVector(1,1), 0);                                
+                        var IAABBox tile_iaabb                  = val IAABBox (call Get_Pos_By_Index( &imap, bot_collision_index ), call VMultSca(tile!.itile.size, 0.5), IVector(1,1), 0);                                
                         if call Overlaps( &tile_iaabb, &imov_obj.iaabb ) then
                             if tile!.itile.type is ETile_Type.Solid then
                                 imov_obj.ikinematic.position.y  = tile_iaabb.center.y + tile_iaabb.half_size.y + half_size.y + 1;
                                 imov_obj.ikinematic.velocity.y  = 0;
                                 imov_obj.pushes_bottom_tile     = true;
                             end
-                            var ITile_Collision it_collision        = call/dynamic Tile_Hit (&actor!.iactor, &tile!.itile, bot_collision_index);
+                            var ITile_Collision it_collision    = call/dynamic Tile_Hit (&actor!.iactor, &tile!.itile, bot_collision_index);
                             if it_collision.collision then
                                 emit tile!.itile.collision(bot_collision_index);
                             end
@@ -289,14 +289,14 @@ do
                 var&? Tile tile;
                 loop tile in tiles do
                     if tile!.itile.id == imap.tile_map[top_collision_index] then
-                        var IAABBox tile_iaabb = val IAABBox (call Get_Pos_By_Index( &imap, top_collision_index ), call VMultSca(tile!.itile.size, 0.5), IVector(1,1), 0);                                
+                        var IAABBox tile_iaabb                  = val IAABBox (call Get_Pos_By_Index( &imap, top_collision_index ), call VMultSca(tile!.itile.size, 0.5), IVector(1,1), 0);                                
                         if call Overlaps( &tile_iaabb, &imov_obj.iaabb ) then
                             if tile!.itile.type is ETile_Type.Solid then
                                 imov_obj.ikinematic.position.y  = tile_iaabb.center.y - tile_iaabb.half_size.y - half_size.y - 1;
                                 imov_obj.ikinematic.velocity.y  = 0;
-                                imov_obj.pushes_top_tile     = true;
+                                imov_obj.pushes_top_tile        = true;
                             end
-                            var ITile_Collision it_collision        = call/dynamic Tile_Hit (&actor!.iactor, &tile!.itile, top_collision_index);
+                            var ITile_Collision it_collision    = call/dynamic Tile_Hit (&actor!.iactor, &tile!.itile, top_collision_index);
                             if it_collision.collision then
                                 emit tile!.itile.collision(top_collision_index);
                             end
@@ -347,7 +347,7 @@ end
 
 code/call Collision_Response ( var IMoving_Obj main_obj, var IMoving_Obj other_obj, var IVector overlap) -> IMoving_Obj
 do
-    if (main_obj.body_type is BType.Kinematic) or (main_obj.body_type is BType.Trigger) then
+    if (main_obj.body_type is EType.Kinematic) or (main_obj.body_type is EType.Trigger) or (other_obj.body_type is EType.Trigger) then
         escape main_obj;
     end
     if overlap.x == 0.0 then
@@ -377,10 +377,8 @@ do
 
     // actor response
     var IVector velocity_ratio = val IVector(0,0);
-    if other_obj.body_type is BType.Kinematic then
+    if other_obj.body_type is EType.Kinematic then
         velocity_ratio = val IVector (1, 1);
-    else/if other_obj.body_type is BType.Trigger then
-        velocity_ratio = val IVector (0, 0);
     else
         if velocity_sum.x == 0.0 and velocity_sum.y == 0.0 then
             velocity_ratio = val IVector(0.5, 0.5);
@@ -429,18 +427,16 @@ do
     var[] ICollision collisions;
     var&? Actor actor;
     loop actor in actors do
-        var&? Actor other_actor;
-        loop other_actor in actors do
-            if &&actor!.iactor != &&other_actor!.iactor then
-                var IVector overlap     = val IVector (0, 0);
-                if call OverlapsSigned( &actor!.iactor.imov_obj.iaabb, &other_actor!.iactor.imov_obj.iaabb, &overlap ) then
-                    var IMoving_Obj actor_mobj = call Collision_Response( actor!.iactor.imov_obj,       other_actor!.iactor.imov_obj, overlap);
-                    actor!.iactor.imov_obj          = actor_mobj;
-
-                    var IActor_Hit ia_hit   = call/dynamic Actor_Hit(&actor!.iactor, &other_actor!.iactor);
-                    if ia_hit.target_data.hit then
-                        // emit other_actor!.iactor.hit ();
-                        // emit actor!.iactor.hit ();
+        if not(actor!.iactor.imov_obj.body_type is EType.Intangible) then
+            var&? Actor other_actor;
+            loop other_actor in actors do
+                if &&actor!.iactor != &&other_actor!.iactor then
+                    if not(other_actor!.iactor.imov_obj.body_type is EType.Intangible) then
+                        var IVector overlap     = val IVector (0, 0);
+                        if call OverlapsSigned( &actor!.iactor.imov_obj.iaabb, &other_actor!.iactor.imov_obj.iaabb, &overlap ) then
+                            var IMoving_Obj actor_mobj = call Collision_Response( actor!.iactor.imov_obj,       other_actor!.iactor.imov_obj, overlap);
+                            actor!.iactor.imov_obj          = actor_mobj;
+                        end
                     end
                 end
             end

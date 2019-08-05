@@ -1,12 +1,14 @@
 data IBorder with
 	var IImage_Quad iquad;
     var IMoving_Obj imov_obj;
-    var IVector relative_velocity;
+	var Color filter = val Color (255, 255, 255, 255);
 end
 
-code/call Create_Border (var IImage_Quad iquad, var IMoving_Obj imov_obj, var IVector relative_velocity) -> IBorder
+code/call Create_Border (var IImage_Quad iquad, var IMoving_Obj imov_obj, var IVector velocity) -> IBorder
 do
-	var IBorder iborder = val IBorder(iquad, imov_obj, relative_velocity);
+    imov_obj.ikinematic.velocity    = velocity;
+    imov_obj.ikinematic.drag        = 1;
+	var IBorder iborder             = val IBorder(iquad, imov_obj, _);
 	escape iborder;
 end
 
@@ -26,14 +28,13 @@ do
 
             var int i;
             loop i in [0 -> ((camera_size.x / border_size.x) + 1) as int] do
-                draw_position.x = (i * border_size.x ) + iborder.imov_obj.iaabb.center.x - i;
-                call Draw_Image( &iborder.iquad, draw_position.x, draw_position.y, iborder.imov_obj.iaabb.scale.x, iborder.imov_obj.iaabb.scale.y, iborder.iquad.offset.x, iborder.iquad.offset.y, iborder.imov_obj.iaabb.rotate_angle);
+                draw_position.x = (i * border_size.x ) + iborder.imov_obj.iaabb.center.x;
+                call Draw_Image( &iborder.iquad, draw_position.x, draw_position.y, iborder.imov_obj.iaabb.scale.x, iborder.imov_obj.iaabb.scale.y, iborder.iquad.offset.x, iborder.iquad.offset.y, iborder.imov_obj.iaabb.rotate_angle, iborder.filter);
             end
         end
     with
         var int dt;
         every dt in FRAMES_UPDATE do
-			iborder.imov_obj.ikinematic.velocity = call VAdd(call Camera_Get_Velocity(), iborder.relative_velocity);
             call Kinematic_Update_Position ( &iborder.imov_obj.ikinematic, dt );
 
             var IVector border_position = iborder.imov_obj.ikinematic.position;

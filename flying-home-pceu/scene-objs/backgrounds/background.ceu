@@ -1,12 +1,14 @@
 data IBackground with
 	var& IImage_Quad iquad;
 	var IMoving_Obj imov_obj;
-	var IVector relative_velocity;
+	var Color filter = val Color (255, 255, 255, 255);
 end
 
-code/call Create_Background (var& IImage_Quad iquad, var IMoving_Obj imov_obj, var IVector relative_velocity) -> IBackground
+code/call Create_Background (var& IImage_Quad iquad, var IMoving_Obj imov_obj, var IVector velocity) -> IBackground
 do
-	var IBackground ibg = val IBackground(&iquad, imov_obj, relative_velocity);
+    imov_obj.ikinematic.velocity    = velocity;
+    imov_obj.ikinematic.drag        = 1;
+	var IBackground ibg 			= val IBackground(&iquad, imov_obj, _);
 	escape ibg;
 end
 
@@ -21,7 +23,7 @@ do
 			end
 		end
 		every FRAMES_REDRAW do
-    		call Draw_Image( &ibackground.iquad, position.x, position.y, scale.x, scale.y, ibackground.iquad.offset.x, ibackground.iquad.offset.y, ibackground.imov_obj.iaabb.rotate_angle );
+    		call Draw_Image( &ibackground.iquad, position.x, position.y, scale.x, scale.y, ibackground.iquad.offset.x, ibackground.iquad.offset.y, ibackground.imov_obj.iaabb.rotate_angle, ibackground.filter );
 			if not(call On_Screen (position, call AABB_Get_Size(&ibackground.imov_obj.iaabb) )) then
 				break;
 			end
@@ -29,7 +31,6 @@ do
 	with
         var int dt;
         every dt in FRAMES_UPDATE do
-			ibackground.imov_obj.ikinematic.velocity = call VAdd(call Camera_Get_Velocity(), ibackground.relative_velocity);
             call Kinematic_Update_Position ( &ibackground.imov_obj.ikinematic, dt );
         end
 	end

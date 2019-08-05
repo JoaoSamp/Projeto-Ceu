@@ -3,7 +3,8 @@ data ETile_Type.Nonsolid;
 data ETile_Type.Solid;
 data ETile_Type.Oneway;
 
-data BType;
-data BType.Kinematic;
-data BType.Dynamic;
-data BType.Trigger;
+data EType;
+data EType.Kinematic;
+data EType.Dynamic;
+data EType.Trigger;
+data EType.Intangible;
