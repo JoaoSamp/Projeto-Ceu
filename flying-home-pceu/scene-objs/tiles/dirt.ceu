@@ -1,9 +1,9 @@
 data ITile_Manager.IDirt;
 
-code/call Create_Dirt_Data (var& IMap imap, var int id) -> ITile_Manager.IDirt
+code/call Create_Dirt_Data (var& IMap imap, var&[] int tile_map, var int id) -> ITile_Manager.IDirt
 do
 	var IVector size = val IVector (32, 32);
-	var ITile_Manager.IDirt idirt = val ITile_Manager.IDirt ( id, size, _, ETile_Type.Solid(), &imap, _, _);
+	var ITile_Manager.IDirt idirt = val ITile_Manager.IDirt ( id, size, _, ETile_Type.Solid(), &imap, &tile_map, _, _);
 	escape idirt;	
 end
 

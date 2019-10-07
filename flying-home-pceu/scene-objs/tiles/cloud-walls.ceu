@@ -1,0 +1,24 @@
+data ITile_Manager.ICloud_Walls;
+
+code/call Create_Cloud_Walls_Data (var& IMap imap, var&[] int tile_map, var int tile_id) -> ITile_Manager.ICloud_Walls
+do
+	var IVector size = val IVector (32, 32);
+	var ITile_Manager.ICloud_Walls icloud_walls = val ITile_Manager.ICloud_Walls ( tile_id, size, _, ETile_Type.Nonsolid(), &imap, &tile_map, _, _);
+	escape icloud_walls;
+end
+
+code/await Cloud_Walls (var& ITile_Manager.ICloud_Walls itile ) -> NEVER
+do
+	var IVector offset	    = val IVector (16, 16);
+    var IImage_Quad iquad   = call Create_Image_Quad("assets/img/tiles/cloud-walls.bmp", offset, 18);
+
+    every FRAMES_REDRAW do
+        call Tiles_Multiples_Draws (&itile, &iquad);
+    end
+end
+
+
+code/await/dynamic Tile (var&/dynamic ITile_Manager.ICloud_Walls itile ) -> NEVER
+do
+	await Cloud_Walls (&itile);
+end

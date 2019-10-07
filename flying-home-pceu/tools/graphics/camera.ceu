@@ -135,7 +135,11 @@ do
 	y 	= y - camera_position.y;
 	x 	= x * camera_scale.x;
 	y 	= y * camera_scale.y;
+	sx 	= sx * camera_scale.x;
+	sy 	= sy * camera_scale.y;
 
+	emit GRAPHICS_SET_ANCHOR (HANCHOR_LEFT, VANCHOR_TOP);
+	emit GRAPHICS_SET_SCALE ( 1, 1 );
 	emit GRAPHICS_SET_COLOR_NAME(filter);
 	emit GRAPHICS_DRAW_RECT ( _round(x) as int, _round(y) as int, _round(sx) as int, _round(sy) as int  );
 end

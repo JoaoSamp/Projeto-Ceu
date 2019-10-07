@@ -1,9 +1,9 @@
 data ITile_Manager.ICloud;
 
-code/call Create_Cloud_Data (var& IMap imap, var int id) -> ITile_Manager.ICloud
+code/call Create_Cloud_Data (var& IMap imap, var&[] int tile_map, var int id) -> ITile_Manager.ICloud
 do
 	var IVector size = val IVector (28, 28);
-	var ITile_Manager.ICloud icloud = val ITile_Manager.ICloud ( id, size, _, ETile_Type.Nonsolid(), &imap, _, _);
+	var ITile_Manager.ICloud icloud = val ITile_Manager.ICloud ( id, size, _, ETile_Type.Nonsolid(), &imap, &tile_map, _, _);
 	escape icloud;	
 end
 
@@ -33,7 +33,7 @@ do
 	with
 		var int index;
 		every index in itile.collision do
-			itile.imap.tile_map[index] = 0;
+			itile.tile_map[index] = 0;
 			var IVector start_position = call Get_Pos_By_Index( &itile.imap, index );
 			spawn Cloud_Destroy (start_position) in destroy_pool;
 		end

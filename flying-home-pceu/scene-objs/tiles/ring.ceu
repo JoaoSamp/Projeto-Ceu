@@ -1,9 +1,9 @@
 data ITile_Manager.IRing;
 
-code/call Create_Ring_Data (var& IMap imap, var int id) -> ITile_Manager.IRing
+code/call Create_Ring_Data (var& IMap imap, var&[] int tile_map, var int id) -> ITile_Manager.IRing
 do
 	var IVector size = val IVector (10, 22);
-	var ITile_Manager.IRing iring = val ITile_Manager.IRing ( id, size, _, ETile_Type.Nonsolid(), &imap, _, _);
+	var ITile_Manager.IRing iring = val ITile_Manager.IRing ( id, size, _, ETile_Type.Nonsolid(), &imap, &tile_map, _, _);
 	escape iring;	
 end
 
@@ -33,7 +33,7 @@ do
 	with
 		var int index;
 		every index in itile.collision do
-			itile.imap.tile_map[index] = 0;
+			itile.tile_map[index] = 0;
 			var IVector start_position = call Get_Pos_By_Index( &itile.imap, index );
 			spawn Ring_Destroy ( start_position) in destroy_pool;
 		end

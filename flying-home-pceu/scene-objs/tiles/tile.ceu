@@ -4,6 +4,7 @@ data ITile_Manager with
 	var Color filter 	= val Color (255, 255, 255, 255);
 	var ETile_Type type;
 	var& IMap imap;
+    var&[] int tile_map;
 	event int collision;
 	event none destroy;
 end
@@ -26,9 +27,33 @@ do
         	loop j in [0 -> (itile.imap.size.y -1) as int] do
                 var int index = i + (j * (itile.imap.size.x as int));
                 emit GRAPHICS_SET_BMP_FRAME (iquad.draw_frame, iquad.frames);
-        		if index > 0 and index < $itile.imap.tile_map then
-	                if itile.imap.tile_map[index] == itile.id then
+        		if index > 0 and index < $itile.tile_map then
+	                if itile.tile_map[index] == itile.id then
 	                	var IVector position = call Get_Pos_By_Index( &itile.imap, index );
+						call Draw_Image( &iquad, position.x, position.y, 1, 1, iquad.offset.x, iquad.offset.y, 0, itile.filter);
+					end
+				end
+			end
+		end
+	end
+end
+
+code/call Tiles_Multiples_Draws (var& ITile_Manager itile, var& IImage_Quad iquad ) -> none
+do
+	var IVector camera_size 	= call Camera_Get_Size();
+	var IVector camera_position = call Camera_Get_Position();
+	var int x_index 			= call Get_X_Index_By_X_Pos ( &itile.imap, camera_position.x - (camera_size.x * 0.5));
+	x_index = x_index;
+	var int i;
+    loop i in [x_index -> (x_index + ((camera_size.x / itile.imap.tile_size.x) as int) + 1) as int] do
+    	if i >= 0 and i < itile.imap.size.x then
+    		var int j;
+        	loop j in [0 -> (itile.imap.size.y -1) as int] do
+                var int index = i + (j * (itile.imap.size.x as int));
+        		if index > 0 and index < $itile.tile_map then
+	                if itile.tile_map[index] > 0 then
+	                	var IVector position = call Get_Pos_By_Index( &itile.imap, index );
+						iquad.draw_frame = (itile.tile_map[index] - itile.id) % iquad.frames;
 						call Draw_Image( &iquad, position.x, position.y, 1, 1, iquad.offset.x, iquad.offset.y, 0, itile.filter);
 					end
 				end

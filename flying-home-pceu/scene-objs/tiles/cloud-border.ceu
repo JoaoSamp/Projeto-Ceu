@@ -1,0 +1,24 @@
+data ITile_Manager.ICloud_Border;
+
+code/call Create_Cloud_Border_Data (var& IMap imap, var&[] int tile_map, var int tile_id) -> ITile_Manager.ICloud_Border
+do
+	var IVector size = val IVector (32, 32);
+	var ITile_Manager.ICloud_Border icloud_border = val ITile_Manager.ICloud_Border ( tile_id, size, _, ETile_Type.Nonsolid(), &imap, &tile_map, _, _);
+	escape icloud_border;
+end
+
+code/await Cloud_Border (var& ITile_Manager.ICloud_Border itile ) -> NEVER
+do
+	var IVector offset	    = val IVector (16, 16);
+    var IImage_Quad iquad   = call Create_Image_Quad("assets/img/tiles/cloud-border.bmp", offset, 2);
+
+    every FRAMES_REDRAW do
+        call Tiles_Multiples_Draws (&itile, &iquad);
+    end
+end
+
+
+code/await/dynamic Tile (var&/dynamic ITile_Manager.ICloud_Border itile ) -> NEVER
+do
+	await Cloud_Border (&itile);
+end

@@ -35,3 +35,13 @@ do
         end
 	end
 end
+
+code/await Background_Color ( var& Color color ) -> NEVER
+do
+	every FRAMES_REDRAW do
+		var IVector camera_size = call Camera_Get_Size ();
+		var IVector camera_position = call Camera_Get_Position();
+		emit GRAPHICS_SET_DRAW_MODE(DRAW_MODE_FILL);
+		call Draw_Rectangle( camera_position.x, camera_position.y, (camera_size.x + 2), (camera_size.y + 2), camera_size.x * 0.5, camera_size.y * 0.5, color);
+	end
+end 

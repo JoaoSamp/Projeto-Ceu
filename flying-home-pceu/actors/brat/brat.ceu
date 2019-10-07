@@ -19,7 +19,7 @@ do
     event bool e_stop_state;
     var IVector sprite_offset       = val IVector(24, 25);
 
-    var IAnimation ianim_flying         = val IAnimation( call Create_Image_Quad( "assets/img/actors/brat/brat-flying.bmp",          sprite_offset, 4), 10);
+    var IAnimation ianim_flying         = val IAnimation( call Create_Image_Quad( "assets/img/actors/brat/brat-flying.bmp",          sprite_offset, 4), 6);
     var IAnimation ianim_attack_start   = val IAnimation( call Create_Image_Quad( "assets/img/actors/brat/brat-attack-start.bmp",    sprite_offset, 3), 16);
     var IAnimation ianim_attacking      = val IAnimation( call Create_Image_Quad( "assets/img/actors/brat/brat-attacking.bmp",       sprite_offset, 2), 10);
     var IAnimation ianim_attack_end     = val IAnimation( call Create_Image_Quad( "assets/img/actors/brat/brat-attack-end.bmp",      sprite_offset, 1), 10);
@@ -28,7 +28,7 @@ do
 
     var real target_radius  = 64;
     var real slow_radius    = 96;
-    var int attack_prep     = 1000;
+    var int attack_prep     = 300;
     var int attack_cooldown = 1500;
     var real normal_acc     = 250;
     var real attack_acc     = 800;
@@ -56,9 +56,11 @@ do
                         await Animation (&ianim_flying, &ibrat.imov_obj.iaabb.center, &ibrat.imov_obj.iaabb.scale, &ibrat.imov_obj.iaabb.rotate_angle, &ibrat.filter );
                     end
                 with
-                    await (attack_cooldown)ms;
-                    ibrat.imov_obj.ikinematic.acceleration        = val IVector ( normal_acc, normal_acc);
-                    await Arrive_Behavior (&ibrat.imov_obj, &ibrat.itarget.imov_obj.iaabb.center, target_radius, slow_radius);
+                    //loop do
+                        await (attack_cooldown)ms;
+                        ibrat.imov_obj.ikinematic.acceleration        = val IVector ( normal_acc, normal_acc);
+                        await Arrive_Behavior (&ibrat.imov_obj, &ibrat.itarget.imov_obj.iaabb.center, target_radius, slow_radius);
+                    //end
                 end
                 
                 // Start Attack
@@ -146,14 +148,4 @@ end
 code/await/dynamic Actor ( var&/dynamic IActor.IEnemie.IBrat iactor, pool&[] Actor actors, pool&[] Tile tiles ) -> none
 do
     await Brat (&iactor, &actors, &tiles);
-end
-
-code/call/dynamic Actor_Hit (var&/dynamic IActor.IEnemie.IBrat iactor, var&/dynamic IActor.IPlayer itarget) -> IActor_Hit
-do
-    var IActor_Hit ia_hit = val IActor_Hit ( call Create_Hit(), call Create_Hit() );
-    if iactor.istatus.state is EState.Attacking then
-        ia_hit.target_data.hit      = true;
-        ia_hit.target_data.damage   = -8;
-    end
-    escape ia_hit;
 end

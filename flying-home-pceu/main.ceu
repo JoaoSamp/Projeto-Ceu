@@ -47,7 +47,6 @@ emit FRAMES_SET(yes);
 	#include "actors/actor.ceu"
 	#include "actors/hitbox.ceu"
 	#include "scene-objs/backgrounds/background.ceu"
-	#include "scene-objs/borders/border.ceu"
 
 	// post actor components
 	#include "components/behaviors.ceu"
@@ -57,10 +56,6 @@ emit FRAMES_SET(yes);
 	#include "scene-objs/backgrounds/temple-bg.ceu"
 
 	//#include "hud/open-animation.ceu"
-
-	// borders
-	#include "scene-objs/borders/cloud-border.ceu"
-	#include "scene-objs/borders/temple-border.ceu"
 	
 	// actors derivations
 	#include "actors/player/player-attacks.ceu"
@@ -75,17 +70,20 @@ emit FRAMES_SET(yes);
 
 	//scenes and tiles
 	#include "scene-objs/tiles/cloud.ceu"
+	#include "scene-objs/tiles/cloud-objs.ceu"
+	#include "scene-objs/tiles/cloud-walls.ceu"
+	#include "scene-objs/tiles/cloud-border.ceu"
 	#include "scene-objs/tiles/ring.ceu"
 	#include "scene-objs/tiles/dirt.ceu"
 
 	#include "tools/physics.ceu"
-	#include "scene-objs/scenes/blue-sky.ceu"
-	#include "scene-objs/scenes/scene1-1.ceu"
+	#include "scene-objs/scenes/scene1.ceu"
 	//#include "game-world/world-pin.ceu"
 	//#include "game-world/world-map.ceu"
 	//#include "game-world/game-world.ceu"
 
+emit GRAPHICS_SET_BLEND_MODE(BLEND_MODE_BLEND);
 loop do 
-	await Scene_1_1();
+	await Scene_1();
 end
 await FOREVER;

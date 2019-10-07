@@ -18,15 +18,39 @@ do
     ibg_sky_two.imov_obj.ikinematic.position.x  = position.x + true_size.x - 1;
     ibg_sky_two.imov_obj.iaabb.scale.y          = ibg_sky_two.imov_obj.iaabb.scale.y * -1;
 
-    var Color bs_color      = val Color (165, 220, 255, 255);
-    var Color bs2_color     = val Color (100, 125, 255, 255);
-    var Color sunset_color  = val Color( 255, 215, 130, 255);
-    var Color sunset2_color = val Color( 255, 155, 100, 255);
-    var Color night_color   = val Color( 65, 105, 160, 255);
-    var Color bg_color      = bs_color;
+    code/await BG_Color_Transition (var Color color, var int time, var int step) -> none do
+        var& Background_Color bg_color = spawn Background_Color(&color);
+        every (time)ms do
+            color.a = color.a + step;
+            if color.a > 255 then
+                color.a = 255;
+                break;
+            end
+        end
+    end
 
-    emit WINDOW_SET_CLEAR_COLOR_RGB( bs_color.r, bs_color.g, bs_color.b );
+    var [] Color sky_colors = [];
+    var Color blue          = val Color (165, 220, 255, 255);
+    var Color soft_blue     = val Color (100, 125, 255, 0);
+    var Color yellow        = val Color( 255, 215, 130, 0);
+    var Color orange        = val Color( 255, 155, 100, 0);
+    var Color nightblue     = val Color( 167, 143, 196, 0);
+    sky_colors  = sky_colors..[blue];
+    sky_colors  = sky_colors..[soft_blue];
+    sky_colors  = sky_colors..[yellow];
+    sky_colors  = sky_colors..[orange];
+    sky_colors  = sky_colors..[nightblue];
+
+    emit WINDOW_SET_CLEAR_COLOR_NAME( blue );
     par do
+        //emit WINDOW_SET_CLEAR_COLOR_NAME(  );
+        var int i;
+        loop i in [0 -> ($sky_colors as int)[ do
+            await BG_Color_Transition(sky_colors[i], 300, 10);
+            sky_colors[i].a = 255;
+            emit WINDOW_SET_CLEAR_COLOR_NAME( sky_colors[i] );
+        end
+    with
         loop do
             var&? Background_Image bg = spawn Background_Image (&ibg_sky_one);
             await bg;
@@ -39,15 +63,6 @@ do
             await bg;
             var IVector true_size                       = call AABB_Get_Size(&ibg_sky_two.imov_obj.iaabb);
             ibg_sky_two.imov_obj.ikinematic.position.x  = ibg_sky_two.imov_obj.ikinematic.position.x + (true_size.x * 2);
-        end
-    with
-        await Color_Transition_S( &bg_color, bs2_color, 60);
-        await Color_Transition_S( &bg_color, sunset_color, 90);
-        await Color_Transition_S( &bg_color, sunset2_color, 60);
-        await Color_Transition_S( &bg_color, night_color, 60);
-    with
-        every FRAMES_REDRAW do
-            emit WINDOW_SET_CLEAR_COLOR_RGB(bg_color.r, bg_color.g, bg_color.b);
         end
     end
 end

@@ -1,6 +1,7 @@
 data IMap with
     var IVector position;
     var IVector size;
+    var IVector world_size;
     var IVector tile_size;
     var IVector velocity;
     var&[] int tile_map;
@@ -48,12 +49,13 @@ end
 
 code/call Get_Map_Y_Boundaries (var& IMap imap) -> IVector
 do
-    var IVector boundaries = val IVector (imap.position.y + (imap.size.y * imap.tile_size.y), imap.position.y );
+    var real start_y = imap.position.y + (imap.tile_size.y * (imap.size.y - imap.world_size.y) * 0.5);
+    var IVector boundaries = val IVector (start_y + (imap.world_size.y * imap.tile_size.y), start_y );
     escape boundaries;
 end
 
 code/call Get_Map_X_Boundaries (var& IMap imap) -> IVector
 do
-    var IVector boundaries = val IVector (imap.position.x, imap.position.x + (imap.size.x * imap.tile_size.x));
+    var IVector boundaries = val IVector (imap.position.x, imap.position.x + (imap.world_size.x * imap.tile_size.x));
     escape boundaries;
 end

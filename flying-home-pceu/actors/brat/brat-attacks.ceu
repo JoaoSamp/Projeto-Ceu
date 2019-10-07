@@ -13,7 +13,7 @@ code/call/dynamic Actor_Hit (var&/dynamic IHitbox.IBrat_Bite ihitbox, var&/dynam
 do
     var IActor_Hit ia_hit = val IActor_Hit ( call Create_Hit(), call Create_Hit() );
     ia_hit.target_data.hit      = true;
-    ia_hit.target_data.damage   = -8;
+    ia_hit.target_data.damage   = -1;
     // var IVector vector_angle    = call VSub( itarget.imov_obj.iaabb.center, iactor.ibrat.imov_obj.iaabb.center );
     // ia_hit.target_data.angle    = call Vector_To_Angle( IVector ( _fabs(vector_angle.x) * call Signed(iactor.ibrat.imov_obj.iaabb.scale.x), vector_angle.y)  );
     ia_hit.target_data.magnitude = 100;

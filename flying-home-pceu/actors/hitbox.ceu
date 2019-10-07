@@ -46,10 +46,12 @@ do
         end
     with
         every FRAMES_REDRAW do
-            var IVector size    = call AABB_Get_Size(&ihitbox.iaabb);
+            var IVector size        = call AABB_Get_Size(&ihitbox.iaabb);
+            var IVector half_size   = call AABB_Get_Half_Size(&ihitbox.iaabb);
 
-            var Color color     = val Color(255, 0, 0, 255);
-            //call Draw_Rectangle(ihitbox.iaabb.center.x, ihitbox.iaabb.center.y, size.x, size.y, ihitbox.iaabb.half_size.x, ihitbox.iaabb.half_size.y, color);
+            var Color color         = val Color(215, 0, 0, 255);
+		    emit GRAPHICS_SET_DRAW_MODE(DRAW_MODE_LINE);
+            call Draw_Rectangle(ihitbox.iaabb.center.x, ihitbox.iaabb.center.y, size.x, size.y, half_size.x, half_size.y, color);
         end
     end
 end
